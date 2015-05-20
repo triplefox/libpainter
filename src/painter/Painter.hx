@@ -2,10 +2,15 @@ package painter;
 
 class Painter {
 	
-	public var paint : PaintState;
+	public var paint : PaintState; /* program state that PaintProgram can retain between frames */
 	
-	public var result : PaintResult;
-	public var preview : PaintResult;
+	public var result : PaintResult; /* list of points to return to the app this update */
+	public var preview : PaintResult; /* list of points to tell the app to preview this update */
+	
+	public var canvas : VectorCanvas; /* canonical persistent data of the image we're working on */
+	
+	public var complete : Bool; /* program finished in last update */
+	public var sync_canvas : Bool; /* request to sync current canvas state to application */
 	
 	public inline static function defaultBrushes() : Array <PaintResult> {
 		return [PaintResult.fromPairs([[0, 0]], 0xFFFFFFFF), 
@@ -66,6 +71,8 @@ class Painter {
 		paint = null;
 		result = new PaintResult();
 		preview = new PaintResult();
+		complete = false;
+		sync_canvas = false;
 		
 	}
 	
@@ -83,9 +90,10 @@ class Painter {
 			result.push(x1 + paint.brush.data[v0*3], y1 + paint.brush.data[v0*3 + 1], color);
 	}
 	
-	/* returns whether program is finished (e.g. clear preview, reset ui state). */
-	public function updateMouse(state : PaintState) : Bool {
+	public function update(state : PaintState) : Void {
 		result.clear();
+		complete = false;
+		sync_canvas = false;
 		if (state.button_down) {
 			if (paint == null) {
 				paint = state.copy();
@@ -93,14 +101,23 @@ class Painter {
 		}
 		if (paint != null) {
 			if (paint.program(this, state)) {
+				complete = true;
 				paint = null;
 				preview.clear();
-				state.clear();
-				return true;
 			}
 		}
 		state.clear();
-		return false;
+	}
+	
+	public function copy() {
+		var rp = new Painter();
+		rp.canvas = canvas.copy();
+		rp.paint = paint.copy();
+		rp.preview = preview.copy();
+		rp.result = result.copy();
+		rp.complete = complete;
+		rp.sync_canvas = sync_canvas;
+		return rp;
 	}
 	
 }

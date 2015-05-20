@@ -10,6 +10,7 @@
 -D tools=2.3.0
 -D no-compilation
 -D openfl-flash
+-D fdb
 -D web
 -swf-version 11.2
 -swf bin/flash/bin/Libpainter.swf

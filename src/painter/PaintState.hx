@@ -15,7 +15,7 @@ class PaintState {
 	public function new() { }
 
 	public function clear() {
-		x = 0; y = 0; brush = null; program = null; color = 0; button_down = false; tooldata = null;
+		x = 0; y = 0; brush = null; program = null; color = 0; button_down = false; tooldata = null; 
 	}
 	
 	/* copy everything */

@@ -39,4 +39,7 @@ class PaintResult {
 		r.length = length; 
 		return r;
 	}
+	public function toString() {
+		return [for (i0 in 0...length) data[i0]];
+	}
 }
