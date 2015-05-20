@@ -29,6 +29,8 @@ class Main extends Sprite
 	public var selected_program : Int;
 	public var brush : Array<PaintResult>;
 	
+	/* TODO: Create some interface that can either wrap Bitmap or polyfill similar operations on a generic 2d array/vector */
+	
 	public function new() 
 	{
 		super();
@@ -89,16 +91,11 @@ class Main extends Sprite
 				}
 				else if (s0.button_down && p0.paint.tooldata != null && p0.paint.tooldata.click) { /* 5. paste point chosen */
 					editscreen.bitmapData.copyPixels(p0.paint.tooldata.data, p0.paint.tooldata.data.rect, new Point(s0.x, s0.y));
-					//p0.paint = null; /* this shouldn't be necessary, but it is? */
 					return true;
 				}
 				else { return true; } /* should never get here */
 			}
 		]);
-		
-		/* copy/paste... the way we'd do this is to have some brush generated and...inserted into the state. 
-		   i.e. we shouldn't have a palette. We shouldn't have a color, either.
-		*/
 		
 		edittarget.addEventListener(MouseEvent.MOUSE_DOWN, onMouse);
 		edittarget.addEventListener(MouseEvent.MOUSE_UP, onMouse);
