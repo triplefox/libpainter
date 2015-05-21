@@ -175,6 +175,14 @@ class Painter {
 				}
 				return !s0.button[0];
 			},
+			function(p0 : Painter, s0 : PaintState) : Bool { /* marching squares contour */
+				if (!s0.button[0]) {
+					for (c0 in pointsToSegmentsUnlooped(p0.canvas.marchingSquares(Std.int(s0.x), Std.int(s0.y)))) {
+						p0.drawLine(p0.result, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
+					}
+				}
+				return !s0.button[0];
+			},
 		];
 	}
 	

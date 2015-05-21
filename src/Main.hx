@@ -33,7 +33,6 @@ class Main extends Sprite
 	
 	/* Right now copy-paste mixes the "preview" mode with the actual canvas ops. Can it be better? */
 	/* Implement edge tracing on VectorCanvas. */
-	/* Implement marching squares. */
 	
 	public function new() 
 	{
@@ -98,7 +97,8 @@ class Main extends Sprite
 						Std.int(s0.x - p0.paint.tooldata.data.w / 2), 
 						Std.int(s0.y - p0.paint.tooldata.data.h / 2));
 					p0.sync_canvas = true;
-					return true;
+					if (s0.button[1]) return false; /* continue pasting */
+					else return true;
 				}
 				else { return true; } /* should never get here */
 			}

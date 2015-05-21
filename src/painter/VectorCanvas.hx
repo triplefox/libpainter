@@ -159,4 +159,167 @@ class VectorCanvas {
 		result.push(x, y, v); return result;
 	}
 	
+	/* return the contour of the area matching the seed point. Note that the result is visually offset because it represents
+	 * a position in between the original pixels: subtract 0.5 for the "most exact" representation. */
+	public function marchingSquares(xs : Int, ys : Int):Array<Array<Int>> {
+		var contour = [];
+		var seed = get(xs, ys);
+		// move the starting point as far top-left as possible
+		while (xs > 0 && get(xs - 1, ys) == seed) xs -= 1;
+		while (ys > 0 && get(xs, ys - 1) == seed) ys -= 1;
+		// pX and pY are the coordinates of the starting point;
+		var pX = xs;
+		var pY = ys;
+		// stepX and stepY can be -1, 0 or 1 and represent the step in pixels to reach
+		// next contour point
+		// we also need to save the previous step, that's why we use prevX and prevY
+		var stepX:Int=0; var stepY:Int=0; var prevX:Int=0; var prevY:Int=0;
+		while (true) {
+			// the core of the script is getting the 2x2 square value of each pixel
+			var squareValue = getSquareValue(pX, pY, seed);
+			if (squareValue == 0) throw "whoa I'm lost out in a blank area";
+			switch (squareValue) {
+					/* going UP with these cases:
+					
+					+---+---+   +---+---+   +---+---+
+					| 1 |   |   | 1 |   |   | 1 |   |
+					+---+---+   +---+---+   +---+---+
+					|   |   |   | 4 |   |   | 4 | 8 |
+					+---+---+   +---+---+  +---+---+
+					
+					*/
+				case 1,5,13 :
+					stepX=0;
+					stepY=-1;
+					/* going DOWN with these cases:
+					
+					+---+---+   +---+---+   +---+---+
+					|   |   |   |   | 2 |   | 1 | 2 |
+					+---+---+   +---+---+   +---+---+
+					|   | 8 |   |   | 8 |   |   | 8 |
+					+---+---+   +---+---+  +---+---+
+					
+					*/
+				case 8,10,11 :
+					stepX=0;
+					stepY=1;
+					/* going LEFT with these cases:
+					
+					+---+---+   +---+---+   +---+---+
+					|   |   |   |   |   |   |   | 2 |
+					+---+---+   +---+---+   +---+---+
+					| 4 |   |   | 4 | 8 |   | 4 | 8 |
+					+---+---+   +---+---+  +---+---+
+					
+					*/
+				case 4,12,14 :
+					stepX=-1;
+					stepY=0;
+					/* going RIGHT with these cases:
+					
+					+---+---+   +---+---+   +---+---+
+					|   | 2 |   | 1 | 2 |   | 1 | 2 |
+					+---+---+   +---+---+   +---+---+
+					|   |   |   |   |   |   | 4 |   |
+					+---+---+   +---+---+  +---+---+
+					
+					*/
+				case 2,3,7 :
+					stepX=1;
+					stepY=0;
+				case 6 :
+					/* special saddle point case 1:
+					
+					+---+---+ 
+					|   | 2 | 
+					+---+---+
+					| 4 |   |
+					+---+---+
+					
+					going LEFT if coming from UP
+					else going RIGHT 
+					
+					*/
+					if (prevX==0&&prevY==-1) {
+						stepX=-1;
+						stepY=0;
+					}
+					else {
+						stepX=1;
+						stepY=0;
+					}
+				case 9 :
+					/* special saddle point case 2:
+					
+					+---+---+ 
+					| 1 |   | 
+					+---+---+
+					|   | 8 |
+					+---+---+
+					
+					going UP if coming from RIGHT
+					else going DOWN 
+					
+					*/
+					if (prevX==1&&prevY==0) {
+						stepX=0;
+						stepY=-1;
+					}
+					else {
+						stepX=0;
+						stepY=1;
+					}
+			}
+			// moving onto next point
+			pX+=stepX;
+			pY+=stepY;
+			// saving contour point
+			contour.push([pX, pY]);
+			prevX = stepX;
+			prevY = stepY;
+			// if we returned to the first point visited, the loop has finished;
+			if (pX == xs && pY == ys) return contour;	
+		}
+	}
+ 
+	/* get the first matching index of this seed */
+	public function getFirstSeed(seed : Int):Int {
+		for (i0 in 0...d.length) {
+			if (d[i0] == seed) { return i0; }
+		}
+		return -1;
+	}
+
+	public function getSquareValue(pX:Int,pY:Int,seed:Int):Int {
+		/*
+		
+		checking the 2x2 pixel grid, assigning these values to each pixel, if equal to seed value
+		
+		+---+---+
+		| 1 | 2 |
+		+---+---+
+		| 4 | 8 | <- current pixel (pX,pY)
+		+---+---+
+		
+		*/
+		var squareValue=0;
+		// checking upper left pixel
+		if (inbounds(pX-1,pY-1) && rawget(pX-1,pY-1)==seed) {
+			squareValue+=1;
+		}
+		// checking upper pixel
+		if (inbounds(pX,pY-1) && rawget(pX,pY-1)==seed) {
+			squareValue+=2;
+		}
+		// checking left pixel
+		if (inbounds(pX-1,pY) && rawget(pX-1,pY)==seed) {
+			squareValue+=4;
+		}
+		// checking the pixel itself
+		if (inbounds(pX,pY) && rawget(pX,pY)==seed) {
+			squareValue+=8;
+		}
+		return squareValue;
+	}	
+	
 }

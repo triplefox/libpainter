@@ -1005,7 +1005,7 @@ var Main = function() {
 		} else if(s0.button[0] && p0.paint.tooldata != null && p0.paint.tooldata.click) {
 			p0.canvas.blit(p0.paint.tooldata.data,s0.x - p0.paint.tooldata.data.w / 2 | 0,s0.y - p0.paint.tooldata.data.h / 2 | 0,null,null);
 			p0.sync_canvas = true;
-			return true;
+			if(s0.button[1]) return false; else return true;
 		} else return true;
 	}]);
 	this.edittarget.addEventListener(openfl_events_MouseEvent.MOUSE_DOWN,$bind(this,this.onMouse));
@@ -23672,6 +23672,17 @@ painter_Painter.defaultPrograms = function() {
 			}
 		}
 		return !s07.button[0];
+	},function(p08,s08) {
+		if(!s08.button[0]) {
+			var _g6 = 0;
+			var _g15 = painter_Painter.pointsToSegmentsUnlooped(p08.canvas.marchingSquares(s08.x | 0,s08.y | 0));
+			while(_g6 < _g15.length) {
+				var c04 = _g15[_g6];
+				++_g6;
+				p08.drawLine(p08.result,c04[0],c04[1],c04[2],c04[3],p08.paint.color);
+			}
+		}
+		return !s08.button[0];
 	}];
 };
 painter_Painter.prototype = {
@@ -24009,6 +24020,82 @@ painter_VectorCanvas.prototype = {
 		}
 		result.push(x,y,v);
 		return result;
+	}
+	,marchingSquares: function(xs,ys) {
+		var contour = [];
+		var seed;
+		if(xs >= 0 && xs < this.w && ys >= 0 && ys < this.h) seed = this.d[this.w * ys + xs]; else seed = this.d[0];
+		while(xs > 0 && this.get(xs - 1,ys) == seed) xs -= 1;
+		while(ys > 0 && this.get(xs,ys - 1) == seed) ys -= 1;
+		var pX = xs;
+		var pY = ys;
+		var stepX = 0;
+		var stepY = 0;
+		var prevX = 0;
+		var prevY = 0;
+		while(true) {
+			var squareValue = this.getSquareValue(pX,pY,seed);
+			if(squareValue == 0) throw new js__$Boot_HaxeError("whoa I'm lost out in a blank area");
+			switch(squareValue) {
+			case 1:case 5:case 13:
+				stepX = 0;
+				stepY = -1;
+				break;
+			case 8:case 10:case 11:
+				stepX = 0;
+				stepY = 1;
+				break;
+			case 4:case 12:case 14:
+				stepX = -1;
+				stepY = 0;
+				break;
+			case 2:case 3:case 7:
+				stepX = 1;
+				stepY = 0;
+				break;
+			case 6:
+				if(prevX == 0 && prevY == -1) {
+					stepX = -1;
+					stepY = 0;
+				} else {
+					stepX = 1;
+					stepY = 0;
+				}
+				break;
+			case 9:
+				if(prevX == 1 && prevY == 0) {
+					stepX = 0;
+					stepY = -1;
+				} else {
+					stepX = 0;
+					stepY = 1;
+				}
+				break;
+			}
+			pX += stepX;
+			pY += stepY;
+			contour.push([pX,pY]);
+			prevX = stepX;
+			prevY = stepY;
+			if(pX == xs && pY == ys) return contour;
+		}
+	}
+	,getFirstSeed: function(seed) {
+		var _g1 = 0;
+		var _g = this.d.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			if(this.d[i0] == seed) return i0;
+		}
+		return -1;
+	}
+	,getSquareValue: function(pX,pY,seed) {
+		var squareValue = 0;
+		if(this.inbounds(pX - 1,pY - 1) && this.d[this.w * (pY - 1) + (pX - 1)] == seed) squareValue += 1;
+		if(this.inbounds(pX,pY - 1) && this.d[this.w * (pY - 1) + pX] == seed) squareValue += 2;
+		if(this.inbounds(pX - 1,pY) && this.d[this.w * pY + (pX - 1)] == seed) squareValue += 4;
+		if(pX >= 0 && pX < this.w && pY >= 0 && pY < this.h && this.d[this.w * pY + pX] == seed) squareValue += 8;
+		return squareValue;
 	}
 	,__class__: painter_VectorCanvas
 };
