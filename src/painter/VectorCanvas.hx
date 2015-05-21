@@ -29,6 +29,7 @@ class VectorCanvas {
 	public inline function setIdx(idx : Int, v : Int) { d[idx] = v; }
 	public inline function rawset(x : Int, y : Int, v : Int) { d[w*y + x] = v; }
 	public inline function set(x : Int, y : Int, v : Int) { if (x >= 0 && x < w && y >= 0 && y < h) d[w*y + x] = v; }
+	public inline function inbounds(x : Int, y : Int) { return (x >= 0 && x < w && y >= 0 && y < h); }
 	
 	public inline function slice(x : Int, y : Int, w : Int, h : Int) : VectorCanvas {
 		if (w < 1 || h < 1) return null;
@@ -74,5 +75,34 @@ class VectorCanvas {
 		}
 		return paints;
 	}
+	
+	/* return a new canvas with the Dijkstra shortest-path flood: value 0 is the destination,
+	 * adjacent values count upwards. Walls are -1, unreachable values are -2. "result" allows a canvas to be reused. 
+	 * Also returns a paint result (e.g. if animation is desired)
+	 * */
+	public inline function dijkstraFlood(x : Int, y : Int, ?result : VectorCanvas) : {canvas:VectorCanvas,paint:PaintResult} {
+		if (result == null) { result = new VectorCanvas(); result.init(w, h); result.clear(-2); }
+		var queue = new Array<Int>();
+		var seed = get(x, y);
+		var paint = new PaintResult();
+		queue.push(getIdx(x, y));
+		result.set(x, y, 0);
+		while (queue.length > 0) {
+			var node = queue.shift();
+			var v = result.d[node];
+			var x = xIdx(node); var y = yIdx(node);
+			paint.push(x, y, v);
+			var tx = x - 1; var ty = y; var ti = getIdx(tx, ty);
+			if (inbounds(tx, ty) && result.d[ti] == -2) { (d[ti] == seed) ? { result.d[ti]= v + 1; queue.push(ti); } : { result.d[ti] = -1; } }
+			tx = x + 1; ty = y; ti = getIdx(tx, ty); 
+			if (inbounds(tx, ty) && result.d[ti] == -2) { (d[ti] == seed) ? { result.d[ti]= v + 1; queue.push(ti); } : { result.d[ti] = -1; } }
+			tx = x; ty = y - 1; ti = getIdx(tx, ty); 
+			if (inbounds(tx, ty) && result.d[ti] == -2) { (d[ti] == seed) ? { result.d[ti]= v + 1; queue.push(ti); } : { result.d[ti] = -1; } }
+			tx = x; ty = y + 1; ti = getIdx(tx, ty); 
+			if (inbounds(tx, ty) && result.d[ti] == -2) { (d[ti] == seed) ? { result.d[ti]= v + 1; queue.push(ti); } : { result.d[ti] = -1; } }
+		}
+		return {canvas:result, paint:paint};
+	}
+
 	
 }

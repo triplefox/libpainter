@@ -965,50 +965,51 @@ var Main = function() {
 	this.selected_brush = 0;
 	this.selected_program = 0;
 	this.program = this.program.concat([function(p0,s0) {
-		if(!s0.button[0]) {
-			p0.canvas.floodFill(s0.x,s0.y,p0.paint.color);
+		p0.preview.clear();
+		if(s0.button[0] && p0.paint.tooldata == null) {
+			var x0 = p0.paint.x | 0;
+			var x1 = s0.x | 0;
+			var y0 = p0.paint.y | 0;
+			var y1 = s0.y | 0;
+			var _g1 = 0;
+			var _g11 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
+			while(_g1 < _g11.length) {
+				var c0 = _g11[_g1];
+				++_g1;
+				p0.drawLine(p0.preview,c0[0],c0[1],c0[2],c0[3],p0.paint.color);
+			}
+			return false;
+		} else if(!s0.button[0] && p0.paint.tooldata == null) {
+			var x01 = s0.x | 0;
+			var x11 = p0.paint.x | 0;
+			if(x01 > p0.paint.x) {
+				x01 = p0.paint.x | 0;
+				x11 = s0.x | 0;
+			}
+			var y01 = s0.y | 0;
+			var y11 = p0.paint.y | 0;
+			if(y01 > p0.paint.y) {
+				y01 = p0.paint.y | 0;
+				y11 = s0.y | 0;
+			}
+			if(x11 - x01 < 1 || y11 - y01 < 1) return true;
+			var td = canvas.slice(x01,y01,x11 - x01,y11 - y01);
+			var td2 = new openfl_display_BitmapData(x11 - x01,y11 - y01,false,0);
+			td2.copyPixels(_g.editscreen.bitmapData,new openfl_geom_Rectangle(x01,y01,x11 - x01,y11 - y01),new openfl_geom_Point(0.,0.));
+			p0.paint.tooldata = { click : false, data : td, preview : td2};
+			return false;
+		} else if(s0.button[0] && p0.paint.tooldata != null && !p0.paint.tooldata.click) {
+			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
+			_g.previewscreen.bitmapData.copyPixels(p0.paint.tooldata.preview,p0.paint.tooldata.preview.rect,new openfl_geom_Point(s0.x - p0.paint.tooldata.preview.width / 2,s0.y - p0.paint.tooldata.preview.height / 2));
+			return false;
+		} else if(!s0.button[0] && p0.paint.tooldata != null) {
+			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
+			_g.previewscreen.bitmapData.copyPixels(p0.paint.tooldata.preview,p0.paint.tooldata.preview.rect,new openfl_geom_Point(s0.x - p0.paint.tooldata.preview.width / 2,s0.y - p0.paint.tooldata.preview.height / 2));
+			p0.paint.tooldata.click = true;
+			return false;
+		} else if(s0.button[0] && p0.paint.tooldata != null && p0.paint.tooldata.click) {
+			p0.canvas.blit(p0.paint.tooldata.data,s0.x - p0.paint.tooldata.data.w / 2 | 0,s0.y - p0.paint.tooldata.data.h / 2 | 0,null,null);
 			p0.sync_canvas = true;
-		}
-		return !s0.button[0];
-	},function(p01,s01) {
-		p01.preview.clear();
-		if(s01.button[0] && p01.paint.tooldata == null) {
-			p01.drawLine(p01.preview,p01.paint.x,p01.paint.y,p01.paint.x,s01.y,p01.paint.color);
-			p01.drawLine(p01.preview,p01.paint.x,p01.paint.y,s01.x,p01.paint.y,p01.paint.color);
-			p01.drawLine(p01.preview,p01.paint.x,s01.y,s01.x,s01.y,p01.paint.color);
-			p01.drawLine(p01.preview,s01.x,p01.paint.y,s01.x,s01.y,p01.paint.color);
-			return false;
-		} else if(!s01.button[0] && p01.paint.tooldata == null) {
-			var x0 = s01.x;
-			var x1 = p01.paint.x;
-			if(x0 > p01.paint.x) {
-				x0 = p01.paint.x;
-				x1 = s01.x;
-			}
-			var y0 = s01.y;
-			var y1 = p01.paint.y;
-			if(y0 > p01.paint.y) {
-				y0 = p01.paint.y;
-				y1 = s01.y;
-			}
-			if(x1 - x0 < 1 || y1 - y0 < 1) return true;
-			var td = canvas.slice(x0,y0,x1 - x0,y1 - y0);
-			var td2 = new openfl_display_BitmapData(x1 - x0,y1 - y0,false,0);
-			td2.copyPixels(_g.editscreen.bitmapData,new openfl_geom_Rectangle(x0,y0,x1 - x0,y1 - y0),new openfl_geom_Point(0.,0.));
-			p01.paint.tooldata = { click : false, data : td, preview : td2};
-			return false;
-		} else if(s01.button[0] && p01.paint.tooldata != null && !p01.paint.tooldata.click) {
-			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
-			_g.previewscreen.bitmapData.copyPixels(p01.paint.tooldata.preview,p01.paint.tooldata.preview.rect,new openfl_geom_Point(s01.x - p01.paint.tooldata.preview.width / 2,s01.y - p01.paint.tooldata.preview.height / 2));
-			return false;
-		} else if(!s01.button[0] && p01.paint.tooldata != null) {
-			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
-			_g.previewscreen.bitmapData.copyPixels(p01.paint.tooldata.preview,p01.paint.tooldata.preview.rect,new openfl_geom_Point(s01.x - p01.paint.tooldata.preview.width / 2,s01.y - p01.paint.tooldata.preview.height / 2));
-			p01.paint.tooldata.click = true;
-			return false;
-		} else if(s01.button[0] && p01.paint.tooldata != null && p01.paint.tooldata.click) {
-			p01.canvas.blit(p01.paint.tooldata.data,s01.x - p01.paint.tooldata.data.w / 2 | 0,s01.y - p01.paint.tooldata.data.h / 2 | 0,null,null);
-			p01.sync_canvas = true;
 			return true;
 		} else return true;
 	}]);
@@ -1026,12 +1027,11 @@ Main.__name__ = ["Main"];
 Main.__super__ = openfl_display_Sprite;
 Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	onMouse: function(evt) {
-		this.state.x = evt.localX | 0;
-		this.state.y = evt.localY | 0;
+		this.state.x = evt.localX;
+		this.state.y = evt.localY;
 		this.state.button[0] = evt.buttonDown;
 		this.state.button[1] = evt.ctrlKey;
 		this.state.button[2] = evt.shiftKey;
-		this.state.button[3] = evt.commandKey;
 		this.state.color = this.palette[this.selected_color];
 		this.state.brush = this.brush[this.selected_brush];
 		this.state.program = this.program[this.selected_program];
@@ -1052,35 +1052,47 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 			}
 			this.painter.result.clear();
 		}
-		if(this.painter.sync_canvas) this.editscreen.bitmapData.setVector(this.editscreen.bitmapData.rect,(function($this) {
-			var $r;
-			var value = $this.painter.canvas.d;
-			var vectorData = new openfl_VectorData();
-			vectorData.length = value.length;
-			vectorData.fixed = true;
-			{
-				var vec;
-				var this1;
-				this1 = new Array(value.length);
-				vec = this1;
-				var _g11 = 0;
-				var _g2 = value.length;
-				while(_g11 < _g2) {
-					var i = _g11++;
-					vec[i] = value[i];
-				}
-				vectorData.data = vec;
+		if(this.painter.sync_canvas) {
+			var v1;
+			var this1;
+			this1 = new Array(this.painter.canvas.d.length);
+			v1 = this1;
+			var _g11 = 0;
+			var _g2 = v1.length;
+			while(_g11 < _g2) {
+				var i01 = _g11++;
+				v1[i01] = this.painter.canvas.d[i01];
 			}
-			$r = vectorData;
-			return $r;
-		}(this)));
+			this.editscreen.bitmapData.setVector(this.editscreen.bitmapData.rect,(function($this) {
+				var $r;
+				var value = v1;
+				var vectorData = new openfl_VectorData();
+				vectorData.length = value.length;
+				vectorData.fixed = true;
+				{
+					var vec;
+					var this2;
+					this2 = new Array(value.length);
+					vec = this2;
+					var _g12 = 0;
+					var _g3 = value.length;
+					while(_g12 < _g3) {
+						var i = _g12++;
+						vec[i] = value[i];
+					}
+					vectorData.data = vec;
+				}
+				$r = vectorData;
+				return $r;
+			}(this)));
+		}
 		if(this.painter.preview.length > 0) {
 			this.previewscreen.bitmapData.fillRect(this.previewscreen.bitmapData.rect,0);
-			var _g12 = 0;
-			var _g3 = this.painter.preview.length;
-			while(_g12 < _g3) {
-				var i01 = _g12++;
-				this.previewscreen.bitmapData.setPixel32(this.painter.preview.data[i01 * 3],this.painter.preview.data[i01 * 3 + 1],this.painter.preview.data[i01 * 3 + 2] | -16777216);
+			var _g13 = 0;
+			var _g4 = this.painter.preview.length;
+			while(_g13 < _g4) {
+				var i02 = _g13++;
+				this.previewscreen.bitmapData.setPixel32(this.painter.preview.data[i02 * 3],this.painter.preview.data[i02 * 3 + 1],this.painter.preview.data[i02 * 3 + 2] | -16777216);
 			}
 		}
 	}
@@ -23510,10 +23522,53 @@ painter_Painter.distance = function(x,y) {
 painter_Painter.distanceSqr = function(x,y) {
 	return (x + y) * (x + y);
 };
+painter_Painter.ellipse = function(x0,x1,y0,y1) {
+	var rx = Math.abs(x0 - x1);
+	var ry = Math.abs(y0 - y1);
+	var r = Math.sqrt((rx + ry) * (rx + ry));
+	var c = 2 * Math.PI * r;
+	var pts = [];
+	var _g1 = 0;
+	var _g = Math.ceil(c / 4);
+	while(_g1 < _g) {
+		var i0 = _g1++;
+		var a = i0 / c * Math.PI * 2;
+		var y = Math.round(Math.sin(a) * ry);
+		var x = Math.round(Math.cos(a) * rx);
+		pts.push([x,y]);
+	}
+	var quad = pts.length;
+	var _g2 = 0;
+	while(_g2 < quad) {
+		var i01 = _g2++;
+		var i1 = quad - i01 - 1;
+		pts.push([-pts[i1][0],pts[i1][1]]);
+	}
+	var _g3 = 0;
+	while(_g3 < quad) {
+		var i02 = _g3++;
+		var i11 = quad - i02 - 1;
+		pts.push([-pts[i02][0],-pts[i02][1]]);
+	}
+	var _g4 = 0;
+	while(_g4 < quad) {
+		var i03 = _g4++;
+		var i12 = quad - i03 - 1;
+		pts.push([pts[i12][0],-pts[i12][1]]);
+	}
+	var _g5 = 0;
+	while(_g5 < pts.length) {
+		var t0 = pts[_g5];
+		++_g5;
+		t0[0] += x0 | 0;
+		t0[1] += y0 | 0;
+	}
+	return pts;
+};
 painter_Painter.defaultPrograms = function() {
 	return [function(p0,s0) {
 		if(s0.button[0]) {
-			p0.drawLine(p0.result,p0.paint.x,p0.paint.y,s0.x,s0.y,p0.paint.color);
+			p0.drawLine(p0.result,p0.paint.x | 0,p0.paint.y | 0,s0.x | 0,s0.y | 0,p0.paint.color);
 			p0.paint.x = s0.x;
 			p0.paint.y = s0.y;
 		}
@@ -23522,14 +23577,18 @@ painter_Painter.defaultPrograms = function() {
 		var target;
 		if(s01.button[0]) target = p01.preview; else target = p01.result;
 		p01.preview.clear();
-		p01.drawLine(target,p01.paint.x,p01.paint.y,s01.x,s01.y,p01.paint.color);
+		p01.drawLine(target,p01.paint.x | 0,p01.paint.y | 0,s01.x | 0,s01.y | 0,p01.paint.color);
 		return !s01.button[0];
 	},function(p02,s02) {
 		var target1;
 		if(s02.button[0]) target1 = p02.preview; else target1 = p02.result;
+		var x0 = p02.paint.x | 0;
+		var x1 = s02.x | 0;
+		var y0 = p02.paint.y | 0;
+		var y1 = s02.y | 0;
 		p02.preview.clear();
 		var _g = 0;
-		var _g1 = painter_Painter.pointsToSegments([[p02.paint.x,p02.paint.y],[p02.paint.x,s02.y],[s02.x,s02.y],[s02.x,p02.paint.y]]);
+		var _g1 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
 		while(_g < _g1.length) {
 			var c0 = _g1[_g];
 			++_g;
@@ -23540,26 +23599,46 @@ painter_Painter.defaultPrograms = function() {
 		var target2;
 		if(s03.button[0]) target2 = p03.preview; else target2 = p03.result;
 		p03.preview.clear();
-		var r = painter_Painter.distance(p03.paint.x - s03.x,p03.paint.y - s03.y);
-		var c = 2 * Math.PI * r;
-		var pts = [];
-		var _g11 = 0;
-		var _g2 = c | 0;
-		while(_g11 < _g2) {
-			var i0 = _g11++;
-			var a = i0 / c * Math.PI * 2;
-			var y = Math.round(Math.sin(a) * r) + p03.paint.x;
-			var x = Math.round(Math.cos(a) * r) + p03.paint.y;
-			pts.push([x,y]);
-		}
-		var _g3 = 0;
-		var _g12 = painter_Painter.pointsToSegments(pts);
-		while(_g3 < _g12.length) {
-			var c01 = _g12[_g3];
-			++_g3;
+		var r = painter_Painter.distance(s03.x - p03.paint.x,s03.y - p03.paint.y);
+		var _g2 = 0;
+		var _g11 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p03.paint.x,p03.paint.x + r,p03.paint.y,p03.paint.y + r));
+		while(_g2 < _g11.length) {
+			var c01 = _g11[_g2];
+			++_g2;
 			p03.drawLine(target2,c01[0],c01[1],c01[2],c01[3],p03.paint.color);
 		}
 		return !s03.button[0];
+	},function(p04,s04) {
+		var target3;
+		if(s04.button[0]) target3 = p04.preview; else target3 = p04.result;
+		p04.preview.clear();
+		var _g3 = 0;
+		var _g12 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p04.paint.x,s04.x,p04.paint.y,s04.y));
+		while(_g3 < _g12.length) {
+			var c02 = _g12[_g3];
+			++_g3;
+			p04.drawLine(target3,c02[0],c02[1],c02[2],c02[3],p04.paint.color);
+		}
+		return !s04.button[0];
+	},function(p05,s05) {
+		if(!s05.button[0]) {
+			p05.canvas.floodFill(s05.x | 0,s05.y | 0,p05.paint.color);
+			p05.sync_canvas = true;
+		}
+		return !s05.button[0];
+	},function(p06,s06) {
+		if(!s06.button[0]) {
+			var df = p06.canvas.dijkstraFlood(s06.x | 0,s06.y | 0,null);
+			var _g13 = 0;
+			var _g4 = df.canvas.d.length;
+			while(_g13 < _g4) {
+				var i0 = _g13++;
+				df.canvas.d[i0] = -16777216 | df.canvas.d[i0] | df.canvas.d[i0] << 8 | df.canvas.d[i0] << 16;
+			}
+			p06.canvas.blit(df.canvas,0,0,null,null);
+			p06.sync_canvas = true;
+		}
+		return !s06.button[0];
 	}];
 };
 painter_Painter.prototype = {
@@ -23664,6 +23743,9 @@ painter_VectorCanvas.prototype = {
 	,set: function(x,y,v) {
 		if(x >= 0 && x < this.w && y >= 0 && y < this.h) this.d[this.w * y + x] = v;
 	}
+	,inbounds: function(x,y) {
+		return x >= 0 && x < this.w && y >= 0 && y < this.h;
+	}
 	,slice: function(x,y,w,h) {
 		if(w < 1 || h < 1) return null;
 		var result = new painter_VectorCanvas();
@@ -23722,6 +23804,66 @@ painter_VectorCanvas.prototype = {
 			}
 		}
 		return paints;
+	}
+	,dijkstraFlood: function(x,y,result) {
+		if(result == null) {
+			result = new painter_VectorCanvas();
+			result.init(this.w,this.h);
+			result.clear(-2);
+		}
+		var queue = [];
+		var seed;
+		if(x >= 0 && x < this.w && y >= 0 && y < this.h) seed = this.d[this.w * y + x]; else seed = this.d[0];
+		var paint = new painter_PaintResult();
+		queue.push(this.w * y + x);
+		if(x >= 0 && x < result.w && y >= 0 && y < result.h) result.d[result.w * y + x] = 0;
+		while(queue.length > 0) {
+			var node = queue.shift();
+			var v = result.d[node];
+			var x1 = node % this.w;
+			var y1 = node / this.h | 0;
+			paint.push(x1,y1,v);
+			var tx = x1 - 1;
+			var ty = y1;
+			var ti = this.w * ty + tx;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h && result.d[ti] == -2) {
+				if(this.d[ti] == seed) {
+					result.d[ti] = v + 1;
+					queue.push(ti);
+				} else result.d[ti] = -1;
+			}
+			tx = x1 + 1;
+			ty = y1;
+			ti = this.w * ty + tx;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h && result.d[ti] == -2) {
+				if(this.d[ti] == seed) {
+					result.d[ti] = v + 1;
+					queue.push(ti);
+				} else result.d[ti] = -1;
+			}
+			tx = x1;
+			ty = y1 - 1;
+			ti = this.w * ty + tx;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h && result.d[ti] == -2) {
+				if(this.d[ti] == seed) {
+					result.d[ti] = v + 1;
+					queue.push(ti);
+				} else result.d[ti] = -1;
+			}
+			tx = x1;
+			ty = y1 + 1;
+			ti = this.w * ty + tx;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h && result.d[ti] == -2) {
+				if(this.d[ti] == seed) {
+					result.d[ti] = v + 1;
+					queue.push(ti);
+				} else result.d[ti] = -1;
+			}
+		}
+		haxe_Log.trace(x >= 0 && x < result.w && y >= 0 && y < result.h?result.d[result.w * y + x]:result.d[0],{ fileName : "VectorCanvas.hx", lineNumber : 104, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
+		haxe_Log.trace(result.get(x - 1,y),{ fileName : "VectorCanvas.hx", lineNumber : 105, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
+		haxe_Log.trace(result.get(x - 1,y - 1),{ fileName : "VectorCanvas.hx", lineNumber : 106, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
+		return { canvas : result, paint : paint};
 	}
 	,__class__: painter_VectorCanvas
 };

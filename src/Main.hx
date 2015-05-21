@@ -32,7 +32,7 @@ class Main extends Sprite
 	public var brush : Array<PaintResult>;
 	
 	/* Right now copy-paste mixes the "preview" mode with the actual canvas ops. Can it be better? */
-	/* Implement Dijkstra pathing flood and trace. */
+	/* Implement Dijkstra pathing trace. */
 	/* Implement edge tracing on VectorCanvas. */
 	/* Implement marching squares. */
 	

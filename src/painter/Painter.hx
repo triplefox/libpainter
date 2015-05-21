@@ -138,6 +138,17 @@ class Painter {
 				}
 				return !s0.button[0];
 			},
+			function(p0 : Painter, s0 : PaintState) : Bool { /* dijkstra flood */
+				if (!s0.button[0]) {
+					var df = p0.canvas.dijkstraFlood(Std.int(s0.x), Std.int(s0.y));
+					for (i0 in 0...df.canvas.d.length) {
+						df.canvas.d[i0] = 0xFF000000 | df.canvas.d[i0] | (df.canvas.d[i0] << 8) | (df.canvas.d[i0] << 16);
+					}
+					p0.canvas.blit(df.canvas, 0, 0);
+					p0.sync_canvas = true;
+				}
+				return !s0.button[0];
+			},
 		];
 	}
 	
