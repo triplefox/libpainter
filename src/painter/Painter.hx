@@ -53,6 +53,13 @@ class Painter {
 		return r0;
 	}
 	
+	/* sort two points so that the top left always comes first */
+	public static function leftTopRightBottom(x0 : Float, y0 : Float, x1 : Float, y1 : Float) : Array<Float> {
+		var l = x0; var r = x1; if (l > x1) { l = x1; r = x0; }
+		var t = y0; var b = y1; if (t > y1) { t = y1; b = y0; }
+		return [l,t,r,b];
+	}
+	
 	public static inline function distance(x : Float, y : Float) {
 		return Math.sqrt((x * x) + (y * y));
 	}

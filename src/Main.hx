@@ -32,7 +32,6 @@ class Main extends Sprite
 	public var brush : Array<PaintResult>;
 	
 	/* Right now copy-paste mixes the "preview" mode with the actual canvas ops. Can it be better? */
-	/* Implement Dijkstra pathing trace. */
 	/* Implement edge tracing on VectorCanvas. */
 	/* Implement marching squares. */
 	
@@ -72,14 +71,14 @@ class Main extends Sprite
 					return false;
 				}
 				else if (!s0.button[0] && p0.paint.tooldata == null) { /* 2. selection chosen */
-					var x0 = Std.int(s0.x); var x1 = Std.int(p0.paint.x); 
-					if (x0 > p0.paint.x) { x0 = Std.int(p0.paint.x); x1 = Std.int(s0.x); }
-					var y0 = Std.int(s0.y); var y1 = Std.int(p0.paint.y); 
-					if (y0 > p0.paint.y) { y0 = Std.int(p0.paint.y); y1 = Std.int(s0.y); }
-					if (x1 - x0 < 1 || y1 - y0 < 1) return true; /* too small */
-					var td = canvas.slice(x0, y0, x1 - x0, y1 - y0);
-					var td2 = new BitmapData(x1-x0, y1-y0, false, 0); 
-					td2.copyPixels(editscreen.bitmapData, new Rectangle(x0, y0, x1-x0, y1-y0), new Point(0., 0.));
+					var ltrb = Painter.leftTopRightBottom(p0.paint.x, p0.paint.y, s0.x, s0.y);
+					var x0 = Std.int(ltrb[0]); var y0 = Std.int(ltrb[1]);
+					var x1 = Std.int(ltrb[2]); var y1 = Std.int(ltrb[3]);
+					var w = x1 - x0; var h = y1 - y0;
+					if (w < 1 || h < 1) return true; /* too small */
+					var td = canvas.slice(x0, y0, w, h);
+					var td2 = new BitmapData(w, h, false, 0); 
+					td2.copyPixels(editscreen.bitmapData, new Rectangle(x0, y0, w, h), new Point(0., 0.));
 					p0.paint.tooldata = {click:false, data:td, preview:td2};
 					return false;
 				}

@@ -980,22 +980,17 @@ var Main = function() {
 			}
 			return false;
 		} else if(!s0.button[0] && p0.paint.tooldata == null) {
-			var x01 = s0.x | 0;
-			var x11 = p0.paint.x | 0;
-			if(x01 > p0.paint.x) {
-				x01 = p0.paint.x | 0;
-				x11 = s0.x | 0;
-			}
-			var y01 = s0.y | 0;
-			var y11 = p0.paint.y | 0;
-			if(y01 > p0.paint.y) {
-				y01 = p0.paint.y | 0;
-				y11 = s0.y | 0;
-			}
-			if(x11 - x01 < 1 || y11 - y01 < 1) return true;
-			var td = canvas.slice(x01,y01,x11 - x01,y11 - y01);
-			var td2 = new openfl_display_BitmapData(x11 - x01,y11 - y01,false,0);
-			td2.copyPixels(_g.editscreen.bitmapData,new openfl_geom_Rectangle(x01,y01,x11 - x01,y11 - y01),new openfl_geom_Point(0.,0.));
+			var ltrb = painter_Painter.leftTopRightBottom(p0.paint.x,p0.paint.y,s0.x,s0.y);
+			var x01 = ltrb[0] | 0;
+			var y01 = ltrb[1] | 0;
+			var x11 = ltrb[2] | 0;
+			var y11 = ltrb[3] | 0;
+			var w = x11 - x01;
+			var h = y11 - y01;
+			if(w < 1 || h < 1) return true;
+			var td = canvas.slice(x01,y01,w,h);
+			var td2 = new openfl_display_BitmapData(w,h,false,0);
+			td2.copyPixels(_g.editscreen.bitmapData,new openfl_geom_Rectangle(x01,y01,w,h),new openfl_geom_Point(0.,0.));
 			p0.paint.tooldata = { click : false, data : td, preview : td2};
 			return false;
 		} else if(s0.button[0] && p0.paint.tooldata != null && !p0.paint.tooldata.click) {
@@ -23515,6 +23510,21 @@ painter_Painter.pointsToSegmentsUnlooped = function(p0) {
 		i0 += 1;
 	}
 	return r0;
+};
+painter_Painter.leftTopRightBottom = function(x0,y0,x1,y1) {
+	var l = x0;
+	var r = x1;
+	if(l > x1) {
+		l = x1;
+		r = x0;
+	}
+	var t = y0;
+	var b = y1;
+	if(t > y1) {
+		t = y1;
+		b = y0;
+	}
+	return [l,t,r,b];
 };
 painter_Painter.distance = function(x,y) {
 	return Math.sqrt(x * x + y * y);
