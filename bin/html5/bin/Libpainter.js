@@ -23639,6 +23639,27 @@ painter_Painter.defaultPrograms = function() {
 			p06.sync_canvas = true;
 		}
 		return !s06.button[0];
+	},function(p07,s07) {
+		var target4;
+		p07.preview.clear();
+		if(s07.button[0]) p07.drawLine(p07.preview,p07.paint.x | 0,p07.paint.y | 0,s07.x | 0,s07.y | 0,p07.paint.color); else {
+			var df1 = p07.canvas.dijkstraFlood(s07.x | 0,s07.y | 0,null);
+			var dp = df1.canvas.dijkstraPath4(p07.paint.x | 0,p07.paint.y | 0);
+			var _g14 = 0;
+			var _g5 = dp.length;
+			while(_g14 < _g5) {
+				var c03 = _g14++;
+				var xr = dp.data[c03 * 3];
+				var yr = dp.data[c03 * 3 + 1];
+				var _g31 = 0;
+				var _g21 = p07.paint.brush.length;
+				while(_g31 < _g21) {
+					var v0 = _g31++;
+					p07.result.push(xr + p07.paint.brush.data[v0 * 3],yr + p07.paint.brush.data[v0 * 3 + 1],p07.paint.color);
+				}
+			}
+		}
+		return !s07.button[0];
 	}];
 };
 painter_Painter.prototype = {
@@ -23860,10 +23881,56 @@ painter_VectorCanvas.prototype = {
 				} else result.d[ti] = -1;
 			}
 		}
-		haxe_Log.trace(x >= 0 && x < result.w && y >= 0 && y < result.h?result.d[result.w * y + x]:result.d[0],{ fileName : "VectorCanvas.hx", lineNumber : 104, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
-		haxe_Log.trace(result.get(x - 1,y),{ fileName : "VectorCanvas.hx", lineNumber : 105, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
-		haxe_Log.trace(result.get(x - 1,y - 1),{ fileName : "VectorCanvas.hx", lineNumber : 106, className : "painter.VectorCanvas", methodName : "dijkstraFlood"});
 		return { canvas : result, paint : paint};
+	}
+	,dijkstraPath4: function(x0,y0) {
+		var x = x0;
+		var y = y0;
+		var result = new painter_PaintResult();
+		var v;
+		if(x0 >= 0 && x0 < this.w && y0 >= 0 && y0 < this.h) v = this.d[this.w * y0 + x0]; else v = this.d[0];
+		if(v == -1 || v == -2) return result;
+		while(v != 0) {
+			var tx0 = x - 1;
+			var ty0 = y;
+			var tv0;
+			if(tx0 >= 0 && tx0 < this.w && ty0 >= 0 && ty0 < this.h) tv0 = this.d[this.w * ty0 + tx0]; else tv0 = this.d[0];
+			var tx1 = x + 1;
+			var ty1 = y;
+			var tv1;
+			if(tx1 >= 0 && tx1 < this.w && ty1 >= 0 && ty1 < this.h) tv1 = this.d[this.w * ty1 + tx1]; else tv1 = this.d[0];
+			var tx2 = x;
+			var ty2 = y - 1;
+			var tv2;
+			if(tx2 >= 0 && tx2 < this.w && ty2 >= 0 && ty2 < this.h) tv2 = this.d[this.w * ty2 + tx2]; else tv2 = this.d[0];
+			var tx3 = x;
+			var ty3 = y + 1;
+			var tv3;
+			if(tx3 >= 0 && tx3 < this.w && ty3 >= 0 && ty3 < this.h) tv3 = this.d[this.w * ty3 + tx3]; else tv3 = this.d[0];
+			if(tx0 >= 0 && tx0 < this.w && ty0 >= 0 && ty0 < this.h && tv0 < v) {
+				result.push(x,y,v);
+				x = tx0;
+				y = ty0;
+				v = tv0;
+			} else if(tx1 >= 0 && tx1 < this.w && ty1 >= 0 && ty1 < this.h && tv1 < v) {
+				result.push(x,y,v);
+				x = tx1;
+				y = ty1;
+				v = tv1;
+			} else if(tx2 >= 0 && tx2 < this.w && ty2 >= 0 && ty2 < this.h && tv2 < v) {
+				result.push(x,y,v);
+				x = tx2;
+				y = ty2;
+				v = tv2;
+			} else if(tx3 >= 0 && tx3 < this.w && ty3 >= 0 && ty3 < this.h && tv3 < v) {
+				result.push(x,y,v);
+				x = tx3;
+				y = ty3;
+				v = tv3;
+			} else break;
+		}
+		result.push(x,y,v);
+		return result;
 	}
 	,__class__: painter_VectorCanvas
 };

@@ -149,6 +149,23 @@ class Painter {
 				}
 				return !s0.button[0];
 			},
+			function(p0 : Painter, s0 : PaintState) : Bool { /* dijkstra path */
+				var target : PaintResult;
+				p0.preview.clear();
+				if (s0.button[0]) {
+					p0.drawLine(p0.preview, Std.int(p0.paint.x), Std.int(p0.paint.y), 
+						Std.int(s0.x), Std.int(s0.y), p0.paint.color);
+				} else {
+					var df = p0.canvas.dijkstraFlood(Std.int(s0.x), Std.int(s0.y));
+					var dp = df.canvas.dijkstraPath4(Std.int(p0.paint.x), Std.int(p0.paint.y));
+					for (c0 in 0...dp.length) {
+						var xr = dp.data[c0 * 3]; var yr = dp.data[c0 * 3 + 1];
+						for (v0 in 0...p0.paint.brush.length)
+							p0.result.push(xr + p0.paint.brush.data[v0*3], yr + p0.paint.brush.data[v0*3 + 1], p0.paint.color);
+					}
+				}
+				return !s0.button[0];
+			},
 		];
 	}
 	
