@@ -24074,7 +24074,7 @@ painter_VectorCanvas.prototype = {
 			}
 			pX += stepX;
 			pY += stepY;
-			contour.push([pX,pY]);
+			contour.push([pX,pY,squareValue]);
 			prevX = stepX;
 			prevY = stepY;
 			if(pX == xs && pY == ys) return contour;

@@ -274,7 +274,7 @@ class VectorCanvas {
 			pX+=stepX;
 			pY+=stepY;
 			// saving contour point
-			contour.push([pX, pY]);
+			contour.push([pX, pY, squareValue]);
 			prevX = stepX;
 			prevY = stepY;
 			// if we returned to the first point visited, the loop has finished;
