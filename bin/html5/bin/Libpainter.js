@@ -23674,16 +23674,74 @@ painter_Painter.defaultPrograms = function() {
 		return !s07.button[0];
 	},function(p08,s08) {
 		if(!s08.button[0]) {
-			var _g6 = 0;
-			var _g15 = painter_Painter.pointsToSegmentsUnlooped(p08.canvas.marchingSquares(s08.x | 0,s08.y | 0));
-			while(_g6 < _g15.length) {
-				var c04 = _g15[_g6];
-				++_g6;
+			var ms = p08.canvas.marchingSquares(s08.x | 0,s08.y | 0);
+			var msf;
+			var _g6 = [];
+			var _g15 = 0;
+			while(_g15 < ms.length) {
+				var n = ms[_g15];
+				++_g15;
+				_g6.push([n[0] + 0.,n[1] + 0.]);
+			}
+			msf = _g6;
+			haxe_Log.trace(msf.length,{ fileName : "Painter.hx", lineNumber : 182, className : "painter.Painter", methodName : "defaultPrograms"});
+			msf = painter_Painter.ramerDouglasPecker(msf,0.5);
+			var _g16 = [];
+			var _g22 = 0;
+			while(_g22 < msf.length) {
+				var n1 = msf[_g22];
+				++_g22;
+				_g16.push([n1[0] | 0,n1[1] | 0]);
+			}
+			ms = _g16;
+			haxe_Log.trace(ms.length,{ fileName : "Painter.hx", lineNumber : 185, className : "painter.Painter", methodName : "defaultPrograms"});
+			var _g23 = 0;
+			var _g32 = painter_Painter.pointsToSegmentsUnlooped(ms);
+			while(_g23 < _g32.length) {
+				var c04 = _g32[_g23];
+				++_g23;
 				p08.drawLine(p08.result,c04[0],c04[1],c04[2],c04[3],p08.paint.color);
 			}
 		}
 		return !s08.button[0];
 	}];
+};
+painter_Painter.ramerDouglasPecker = function(v,epsilon) {
+	var firstPoint = v[0];
+	var lastPoint = v[v.length - 1];
+	if(v.length < 3) return v;
+	var index = -1;
+	var dist = 0.;
+	var _g1 = 1;
+	var _g = v.length - 1;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var cDist = painter_Painter.findPerpendicularDistance(v[i],firstPoint,lastPoint);
+		if(cDist > dist) {
+			dist = cDist;
+			index = i;
+		}
+	}
+	if(dist > epsilon) {
+		var l1 = v.slice(0,index + 1);
+		var l2 = v.slice(index);
+		var r1 = painter_Painter.ramerDouglasPecker(l1,epsilon);
+		var r2 = painter_Painter.ramerDouglasPecker(l2,epsilon);
+		var rs = r1.slice(0,r1.length - 1).concat(r2);
+		return rs;
+	} else return [firstPoint,lastPoint];
+	return null;
+};
+painter_Painter.findPerpendicularDistance = function(p,p1,p2) {
+	var result;
+	var slope;
+	var intercept;
+	if(p1[0] == p2[0]) result = Math.abs(p[0] - p1[0]); else {
+		slope = (p2[1] - p1[1]) / (p2[0] - p1[0]);
+		intercept = p1[1] - slope * p1[0];
+		result = Math.abs(slope * p[0] - p[1] + intercept) / Math.sqrt(Math.pow(slope,2) + 1);
+	}
+	return result;
 };
 painter_Painter.prototype = {
 	drawLine: function(result,x0,y0,x1,y1,color) {

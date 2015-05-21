@@ -177,7 +177,11 @@ class Painter {
 			},
 			function(p0 : Painter, s0 : PaintState) : Bool { /* marching squares contour */
 				if (!s0.button[0]) {
-					for (c0 in pointsToSegmentsUnlooped(p0.canvas.marchingSquares(Std.int(s0.x), Std.int(s0.y)))) {
+					var ms = p0.canvas.marchingSquares(Std.int(s0.x), Std.int(s0.y));
+					var msf = [for (n in ms) [n[0] + 0., n[1] + 0.]]; /* int->float */
+					msf = ramerDouglasPecker(msf, 0.5); /* simplify vector */
+					ms = [for (n in msf) [Std.int(n[0]), Std.int(n[1])]]; /* float->int */
+					for (c0 in pointsToSegmentsUnlooped(ms)) {
 						p0.drawLine(p0.result, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
 					}
 				}
@@ -186,6 +190,51 @@ class Painter {
 		];
 	}
 	
+	/* RDP vector outline simplification */
+	public static function ramerDouglasPecker(v:Array<Array<Float>>,epsilon:Float):Array<Array<Float>> {
+		var firstPoint=v[0];
+		var lastPoint=v[v.length-1];
+		if (v.length<3) {
+			return v;
+		}
+		var index=-1;
+		var dist=0.;
+		for (i in 1...v.length-1) {
+			var cDist=findPerpendicularDistance(v[i],firstPoint,lastPoint);
+			if (cDist>dist) {
+				dist=cDist;
+				index=i;
+			}
+		}
+		if (dist>epsilon) {
+			var l1 = v.slice(0,index+1);
+			var l2 = v.slice(index);
+			var r1 = ramerDouglasPecker(l1,epsilon);
+			var r2 = ramerDouglasPecker(l2,epsilon);
+			var rs = r1.slice(0,r1.length-1).concat(r2);
+			return rs;
+		}
+		else {
+			return [firstPoint,lastPoint];
+		}
+		return null;
+	}
+
+	public static inline function findPerpendicularDistance(p:Array<Float>, p1:Array<Float>,p2:Array<Float>) {
+		var result : Float;
+		var slope : Float;
+		var intercept : Float;
+		if (p1[0]==p2[0]) {
+			result=Math.abs(p[0]-p1[0]);
+		}
+		else {
+			slope = (p2[1] - p1[1]) / (p2[0] - p1[0]);
+			intercept=p1[1]-(slope*p1[0]);
+			result = Math.abs(slope * p[0] - p[1] + intercept) / Math.sqrt(Math.pow(slope, 2) + 1);
+		}
+		return result;
+	}
+		
 	public function new() {
 		
 		paint = null;
