@@ -127,4 +127,36 @@ class VectorCanvas {
 		result.push(x, y, v); return result;
 	}
 	
+	/* as dijkstraPath4, but with a distance heuristic against cx/cy applied to bias the path shape */
+	public inline function dijkstraNaturalPath4(x0 : Int, y0 : Int, cx : Int, cy : Int) : PaintResult {
+		var x = x0;
+		var y = y0;
+		var result = new PaintResult();
+		var v = get(x0, y0);
+		var pref = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]];
+		if (v == -1 || v == -2) return result;
+		var tx = 0; var ty = 0; var tv = 0;
+		while (v != 0) {
+			tx = x - 1; ty = y; tv = get(tx, ty); if (!inbounds(tx, ty) || tv == -1 || tv == -2) tv = v + 1;
+			pref[0][0] = tx; pref[0][1] = ty; pref[0][2] = Std.int(Painter.distanceSqr(tx - cx, ty - cy)); pref[0][3] = tv;
+			tx = x + 1; ty = y; tv = get(tx, ty); if (!inbounds(tx, ty) || tv == -1 || tv == -2) tv = v + 1;
+			pref[1][0] = tx; pref[1][1] = ty; pref[1][2] = Std.int(Painter.distanceSqr(tx - cx, ty - cy)); pref[1][3] = tv;
+			tx = x; ty = y - 1; tv = get(tx, ty); if (!inbounds(tx, ty) || tv == -1 || tv == -2) tv = v + 1;
+			pref[2][0] = tx; pref[2][1] = ty; pref[2][2] = Std.int(Painter.distanceSqr(tx - cx, ty - cy)); pref[2][3] = tv;
+			tx = x; ty = y + 1; tv = get(tx, ty); if (!inbounds(tx, ty) || tv == -1 || tv == -2) tv = v + 1;
+			pref[3][0] = tx; pref[3][1] = ty; pref[3][2] = Std.int(Painter.distanceSqr(tx - cx, ty - cy)); pref[3][3] = tv;
+			pref.sort(function(a, b) { 
+				if (a[3] < b[3]) { return -1; } 
+				else if (a[3] > b[3]) { return 1; }
+				else { return a[2] - b[2]; }
+			} );
+			trace(v);
+			trace(pref);
+			tv = pref[0][3]; tx = pref[0][0]; ty = pref[0][1];
+			if (tv < v) { result.push(x,y,v); x = tx; y = ty; v = tv; }
+			else {break;}
+		}
+		result.push(x, y, v); return result;
+	}
+	
 }

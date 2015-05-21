@@ -23517,15 +23517,15 @@ painter_Painter.pointsToSegmentsUnlooped = function(p0) {
 	return r0;
 };
 painter_Painter.distance = function(x,y) {
-	return Math.sqrt((x + y) * (x + y));
+	return Math.sqrt(x * x + y * y);
 };
 painter_Painter.distanceSqr = function(x,y) {
-	return (x + y) * (x + y);
+	return x * x + y * y;
 };
 painter_Painter.ellipse = function(x0,x1,y0,y1) {
 	var rx = Math.abs(x0 - x1);
 	var ry = Math.abs(y0 - y1);
-	var r = Math.sqrt((rx + ry) * (rx + ry));
+	var r = Math.sqrt(rx * rx + ry * ry);
 	var c = 2 * Math.PI * r;
 	var pts = [];
 	var _g1 = 0;
@@ -23644,7 +23644,9 @@ painter_Painter.defaultPrograms = function() {
 		p07.preview.clear();
 		if(s07.button[0]) p07.drawLine(p07.preview,p07.paint.x | 0,p07.paint.y | 0,s07.x | 0,s07.y | 0,p07.paint.color); else {
 			var df1 = p07.canvas.dijkstraFlood(s07.x | 0,s07.y | 0,null);
-			var dp = df1.canvas.dijkstraPath4(p07.paint.x | 0,p07.paint.y | 0);
+			var midx = p07.paint.x + (s07.x - p07.paint.x) / 2;
+			var midy = p07.paint.y + (s07.y - p07.paint.y) / 2;
+			var dp = df1.canvas.dijkstraNaturalPath4(p07.paint.x | 0,p07.paint.y | 0,midx | 0,midy | 0);
 			var _g14 = 0;
 			var _g5 = dp.length;
 			while(_g14 < _g5) {
@@ -23895,38 +23897,104 @@ painter_VectorCanvas.prototype = {
 			var ty0 = y;
 			var tv0;
 			if(tx0 >= 0 && tx0 < this.w && ty0 >= 0 && ty0 < this.h) tv0 = this.d[this.w * ty0 + tx0]; else tv0 = this.d[0];
+			if(!(tx0 >= 0 && tx0 < this.w && ty0 >= 0 && ty0 < this.h) || tv0 == -1 || tv0 == -2) tv0 = v + 1;
 			var tx1 = x + 1;
 			var ty1 = y;
 			var tv1;
 			if(tx1 >= 0 && tx1 < this.w && ty1 >= 0 && ty1 < this.h) tv1 = this.d[this.w * ty1 + tx1]; else tv1 = this.d[0];
+			if(!(tx1 >= 0 && tx1 < this.w && ty1 >= 0 && ty1 < this.h) || tv1 == -1 || tv1 == -2) tv1 = v + 1;
 			var tx2 = x;
 			var ty2 = y - 1;
 			var tv2;
 			if(tx2 >= 0 && tx2 < this.w && ty2 >= 0 && ty2 < this.h) tv2 = this.d[this.w * ty2 + tx2]; else tv2 = this.d[0];
+			if(!(tx2 >= 0 && tx2 < this.w && ty2 >= 0 && ty2 < this.h) || tv2 == -1 || tv2 == -2) tv2 = v + 1;
 			var tx3 = x;
 			var ty3 = y + 1;
 			var tv3;
 			if(tx3 >= 0 && tx3 < this.w && ty3 >= 0 && ty3 < this.h) tv3 = this.d[this.w * ty3 + tx3]; else tv3 = this.d[0];
-			if(tx0 >= 0 && tx0 < this.w && ty0 >= 0 && ty0 < this.h && tv0 < v) {
+			if(!(tx3 >= 0 && tx3 < this.w && ty3 >= 0 && ty3 < this.h) || tv3 == -1 || tv3 == -2) tv3 = v + 1;
+			if(tv0 < v && tv0 <= tv1 && tv0 <= tv2 && tv0 <= tv3) {
 				result.push(x,y,v);
 				x = tx0;
 				y = ty0;
 				v = tv0;
-			} else if(tx1 >= 0 && tx1 < this.w && ty1 >= 0 && ty1 < this.h && tv1 < v) {
+			} else if(tv1 < v && tv1 <= tv0 && tv1 <= tv2 && tv1 <= tv3) {
 				result.push(x,y,v);
 				x = tx1;
 				y = ty1;
 				v = tv1;
-			} else if(tx2 >= 0 && tx2 < this.w && ty2 >= 0 && ty2 < this.h && tv2 < v) {
+			} else if(tv2 < v && tv2 <= tv1 && tv2 <= tv0 && tv2 <= tv3) {
 				result.push(x,y,v);
 				x = tx2;
 				y = ty2;
 				v = tv2;
-			} else if(tx3 >= 0 && tx3 < this.w && ty3 >= 0 && ty3 < this.h && tv3 < v) {
+			} else if(tv3 < v && tv3 <= tv1 && tv3 <= tv2 && tv3 <= tv0) {
 				result.push(x,y,v);
 				x = tx3;
 				y = ty3;
 				v = tv3;
+			} else break;
+		}
+		result.push(x,y,v);
+		return result;
+	}
+	,dijkstraNaturalPath4: function(x0,y0,cx,cy) {
+		var x = x0;
+		var y = y0;
+		var result = new painter_PaintResult();
+		var v;
+		if(x0 >= 0 && x0 < this.w && y0 >= 0 && y0 < this.h) v = this.d[this.w * y0 + x0]; else v = this.d[0];
+		var pref = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+		if(v == -1 || v == -2) return result;
+		var tx = 0;
+		var ty = 0;
+		var tv = 0;
+		while(v != 0) {
+			tx = x - 1;
+			ty = y;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) tv = this.d[this.w * ty + tx]; else tv = this.d[0];
+			if(!(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) || tv == -1 || tv == -2) tv = v + 1;
+			pref[0][0] = tx;
+			pref[0][1] = ty;
+			pref[0][2] = Std["int"](painter_Painter.distanceSqr(tx - cx,ty - cy));
+			pref[0][3] = tv;
+			tx = x + 1;
+			ty = y;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) tv = this.d[this.w * ty + tx]; else tv = this.d[0];
+			if(!(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) || tv == -1 || tv == -2) tv = v + 1;
+			pref[1][0] = tx;
+			pref[1][1] = ty;
+			pref[1][2] = Std["int"](painter_Painter.distanceSqr(tx - cx,ty - cy));
+			pref[1][3] = tv;
+			tx = x;
+			ty = y - 1;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) tv = this.d[this.w * ty + tx]; else tv = this.d[0];
+			if(!(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) || tv == -1 || tv == -2) tv = v + 1;
+			pref[2][0] = tx;
+			pref[2][1] = ty;
+			pref[2][2] = Std["int"](painter_Painter.distanceSqr(tx - cx,ty - cy));
+			pref[2][3] = tv;
+			tx = x;
+			ty = y + 1;
+			if(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) tv = this.d[this.w * ty + tx]; else tv = this.d[0];
+			if(!(tx >= 0 && tx < this.w && ty >= 0 && ty < this.h) || tv == -1 || tv == -2) tv = v + 1;
+			pref[3][0] = tx;
+			pref[3][1] = ty;
+			pref[3][2] = Std["int"](painter_Painter.distanceSqr(tx - cx,ty - cy));
+			pref[3][3] = tv;
+			pref.sort(function(a,b) {
+				if(a[3] < b[3]) return -1; else if(a[3] > b[3]) return 1; else return a[2] - b[2];
+			});
+			haxe_Log.trace(v,{ fileName : "VectorCanvas.hx", lineNumber : 153, className : "painter.VectorCanvas", methodName : "dijkstraNaturalPath4"});
+			haxe_Log.trace(pref,{ fileName : "VectorCanvas.hx", lineNumber : 154, className : "painter.VectorCanvas", methodName : "dijkstraNaturalPath4"});
+			tv = pref[0][3];
+			tx = pref[0][0];
+			ty = pref[0][1];
+			if(tv < v) {
+				result.push(x,y,v);
+				x = tx;
+				y = ty;
+				v = tv;
 			} else break;
 		}
 		result.push(x,y,v);

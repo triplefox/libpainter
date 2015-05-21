@@ -54,10 +54,10 @@ class Painter {
 	}
 	
 	public static inline function distance(x : Float, y : Float) {
-		return Math.sqrt((x + y) * (x + y));
+		return Math.sqrt((x * x) + (y * y));
 	}
 	public static inline function distanceSqr(x : Float, y : Float) {
-		return ((x + y) * (x + y));
+		return ((x * x) + (y * y));
 	}
 	public static inline function ellipse(x0 : Float, x1 : Float, y0 : Float, y1 : Float) {
 		var rx = Math.abs(x0 - x1);
@@ -157,7 +157,9 @@ class Painter {
 						Std.int(s0.x), Std.int(s0.y), p0.paint.color);
 				} else {
 					var df = p0.canvas.dijkstraFlood(Std.int(s0.x), Std.int(s0.y));
-					var dp = df.canvas.dijkstraPath4(Std.int(p0.paint.x), Std.int(p0.paint.y));
+					var midx = p0.paint.x + (s0.x - p0.paint.x) / 2;
+					var midy = p0.paint.y + (s0.y - p0.paint.y) / 2;
+					var dp = df.canvas.dijkstraNaturalPath4(Std.int(p0.paint.x), Std.int(p0.paint.y), Std.int(midx), Std.int(midy));
 					for (c0 in 0...dp.length) {
 						var xr = dp.data[c0 * 3]; var yr = dp.data[c0 * 3 + 1];
 						for (v0 in 0...p0.paint.brush.length)
