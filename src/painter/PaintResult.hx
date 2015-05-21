@@ -9,7 +9,7 @@ class PaintResult {
 	public function clear(?and_buffer = false) {
 		length = 0; if (and_buffer) data = new Vector(3);
 	}
-	public inline function push(x : Int, y : Int, color : UInt) {
+	public inline function push(x : Int, y : Int, color : Int) {
 		/* Double buffer size if needed */
 		while (data.length <= length * 3) {
 			var nd = new Vector(data.length * 2);
@@ -22,7 +22,7 @@ class PaintResult {
 		data[length * 3 + 2] = color;
 		length += 1;
 	}
-	public static function fromPairs(pairs : Array<Array<Int>>, color : UInt) {
+	public static function fromPairs(pairs : Array<Array<Int>>, color : Int) {
 		var pr = new PaintResult();
 		for (p in pairs) pr.push(p[0], p[1], color);
 		return pr;

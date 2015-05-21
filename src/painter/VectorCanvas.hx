@@ -3,7 +3,7 @@ import haxe.ds.Vector;
 
 class VectorCanvas {
 	
-	public var d : Vector<UInt>;
+	public var d : Vector<Int>;
 	public var w : Int;
 	public var h : Int;
 	
@@ -12,9 +12,9 @@ class VectorCanvas {
 	
 	public function init(width : Int, height : Int) {
 		this.w = width; this.h = height;
-		this.d = new Vector<UInt>(w * h);
+		this.d = new Vector<Int>(w * h);
 	}
-	public function clear(v : UInt) {
+	public function clear(v : Int) {
 		for ( i0 in 0...d.length) d[i0] = v;
 	}
 	public function copy() {
@@ -26,9 +26,9 @@ class VectorCanvas {
 	public inline function getIdx(x : Int, y : Int) { return w*y + x; }
 	public inline function rawget(x : Int, y : Int) { return d[w*y + x]; }
 	public inline function get(x : Int, y : Int) { if (x >= 0 && x < w && y >= 0 && y < h) return d[w * y + x]; else return d[0]; }
-	public inline function setIdx(idx : Int, v : UInt) { d[idx] = v; }
-	public inline function rawset(x : Int, y : Int, v : UInt) { d[w*y + x] = v; }
-	public inline function set(x : Int, y : Int, v : UInt) { if (x >= 0 && x < w && y >= 0 && y < h) d[w*y + x] = v; }
+	public inline function setIdx(idx : Int, v : Int) { d[idx] = v; }
+	public inline function rawset(x : Int, y : Int, v : Int) { d[w*y + x] = v; }
+	public inline function set(x : Int, y : Int, v : Int) { if (x >= 0 && x < w && y >= 0 && y < h) d[w*y + x] = v; }
 	
 	public inline function slice(x : Int, y : Int, w : Int, h : Int) : VectorCanvas {
 		if (w < 1 || h < 1) return null;

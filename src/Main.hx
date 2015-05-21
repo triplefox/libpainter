@@ -24,7 +24,7 @@ class Main extends Sprite
 	public var edittarget : Sprite;
 	public var state : PaintState;
 	public var painter : Painter;
-	public var palette : Array<UInt>;
+	public var palette : Array<Int>;
 	public var program : Array<PaintProgram>;
 	public var selected_color : Int;
 	public var selected_brush : Int;
@@ -32,7 +32,6 @@ class Main extends Sprite
 	public var brush : Array<PaintResult>;
 	
 	/* Right now copy-paste mixes the "preview" mode with the actual canvas ops. Can it be better? */
-	/* Implement circle rendering on Painter. */
 	/* Implement Dijkstra pathing flood and trace. */
 	/* Implement edge tracing on VectorCanvas. */
 	/* Implement marching squares. */
@@ -60,29 +59,23 @@ class Main extends Sprite
 		selected_program = 0;
 		
 		program = program.concat([
-			function(p0 : Painter, s0 : PaintState) : Bool { /* flood fill */
-				if (!s0.button_down) {
-					p0.canvas.floodFill(s0.x, s0.y, p0.paint.color);
-					p0.sync_canvas = true;
-				}
-				return !s0.button_down;
-			},
 			function(p0 : Painter, s0 : PaintState) : Bool { /* copy/paste */
 				p0.preview.clear();
-				if (s0.button_down && p0.paint.tooldata == null) { /* 1. picking end point */
-					p0.drawLine(p0.preview, p0.paint.x, p0.paint.y, p0.paint.x, s0.y, 
-						p0.paint.color);				
-					p0.drawLine(p0.preview, p0.paint.x, p0.paint.y, s0.x, p0.paint.y, 
-						p0.paint.color);
-					p0.drawLine(p0.preview, p0.paint.x, s0.y, s0.x, s0.y, 
-						p0.paint.color);
-					p0.drawLine(p0.preview, s0.x, p0.paint.y, s0.x, s0.y, 
-						p0.paint.color);
+				if (s0.button[0] && p0.paint.tooldata == null) { /* 1. picking end point */
+					var x0 = Std.int(p0.paint.x);
+					var x1 = Std.int(s0.x);
+					var y0 = Std.int(p0.paint.y);
+					var y1 = Std.int(s0.y);
+					for (c0 in Painter.pointsToSegments([[x0, y0], [x0, y1], [x1, y1], [x1, y0]])) {
+						p0.drawLine(p0.preview, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
+					}
 					return false;
 				}
-				else if (!s0.button_down && p0.paint.tooldata == null) { /* 2. selection chosen */
-					var x0 = s0.x; var x1 = p0.paint.x; if (x0 > p0.paint.x) { x0 = p0.paint.x; x1 = s0.x; }
-					var y0 = s0.y; var y1 = p0.paint.y; if (y0 > p0.paint.y) { y0 = p0.paint.y; y1 = s0.y; }
+				else if (!s0.button[0] && p0.paint.tooldata == null) { /* 2. selection chosen */
+					var x0 = Std.int(s0.x); var x1 = Std.int(p0.paint.x); 
+					if (x0 > p0.paint.x) { x0 = Std.int(p0.paint.x); x1 = Std.int(s0.x); }
+					var y0 = Std.int(s0.y); var y1 = Std.int(p0.paint.y); 
+					if (y0 > p0.paint.y) { y0 = Std.int(p0.paint.y); y1 = Std.int(s0.y); }
 					if (x1 - x0 < 1 || y1 - y0 < 1) return true; /* too small */
 					var td = canvas.slice(x0, y0, x1 - x0, y1 - y0);
 					var td2 = new BitmapData(x1-x0, y1-y0, false, 0); 
@@ -90,19 +83,18 @@ class Main extends Sprite
 					p0.paint.tooldata = {click:false, data:td, preview:td2};
 					return false;
 				}
-				else if (s0.button_down && p0.paint.tooldata != null && !p0.paint.tooldata.click) { /* 3. waiting for selection release */
+				else if (s0.button[0] && p0.paint.tooldata != null && !p0.paint.tooldata.click) { /* 3. waiting for selection release */
 					previewscreen.bitmapData.fillRect(previewscreen.bitmapData.rect, 0);
 					previewscreen.bitmapData.copyPixels(p0.paint.tooldata.preview, p0.paint.tooldata.preview.rect, new Point(s0.x - p0.paint.tooldata.preview.width/2, s0.y - p0.paint.tooldata.preview.height/2));
 					return false;
 				}
-				else if (!s0.button_down && p0.paint.tooldata != null) { /* 4. picking paste point */
+				else if (!s0.button[0] && p0.paint.tooldata != null) { /* 4. picking paste point */
 					previewscreen.bitmapData.fillRect(previewscreen.bitmapData.rect, 0);
 					previewscreen.bitmapData.copyPixels(p0.paint.tooldata.preview, p0.paint.tooldata.preview.rect, new Point(s0.x - p0.paint.tooldata.preview.width/2, s0.y - p0.paint.tooldata.preview.height/2));
 					p0.paint.tooldata.click = true;
 					return false;
 				}
-				else if (s0.button_down && p0.paint.tooldata != null && p0.paint.tooldata.click) { /* 5. paste point chosen */
-					//editscreen.bitmapData.copyPixels(p0.paint.tooldata.data, p0.paint.tooldata.data.rect, new Point(s0.x - p0.paint.tooldata.data.width/2, s0.y - p0.paint.tooldata.data.height/2));
+				else if (s0.button[0] && p0.paint.tooldata != null && p0.paint.tooldata.click) { /* 5. paste point chosen */
 					p0.canvas.blit(p0.paint.tooldata.data, 
 						Std.int(s0.x - p0.paint.tooldata.data.w / 2), 
 						Std.int(s0.y - p0.paint.tooldata.data.h / 2));
@@ -126,9 +118,11 @@ class Main extends Sprite
 
 	public function onMouse(evt : MouseEvent) {
 		/* populate state of new tool program */
-		state.x = Std.int(evt.localX);
-		state.y = Std.int(evt.localY);
-		state.button_down = evt.buttonDown;
+		state.x = evt.localX;
+		state.y = evt.localY;
+		state.button[0] = evt.buttonDown;
+		state.button[1] = evt.ctrlKey;
+		state.button[2] = evt.shiftKey;
 		state.color = palette[selected_color];
 		state.brush = brush[selected_brush];
 		state.program = program[selected_program];
@@ -148,7 +142,10 @@ class Main extends Sprite
 			painter.result.clear();
 		}
 		if (painter.sync_canvas) { /* rewrite our display with canvas */
-			editscreen.bitmapData.setVector(editscreen.bitmapData.rect, painter.canvas.d.toData());
+			/* because of flash uint type requirements we alloc and copy a new uint vector... */
+			var v : Vector<UInt> = new Vector(painter.canvas.d.length);
+			for (i0 in 0...v.length) v[i0] = painter.canvas.d[i0];
+			editscreen.bitmapData.setVector(editscreen.bitmapData.rect, v.toData());
 		}
 		if (painter.preview.length > 0) { /* draw some preview points */
 			previewscreen.bitmapData.fillRect(previewscreen.bitmapData.rect, 0);

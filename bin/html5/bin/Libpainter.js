@@ -965,20 +965,20 @@ var Main = function() {
 	this.selected_brush = 0;
 	this.selected_program = 0;
 	this.program = this.program.concat([function(p0,s0) {
-		if(!s0.button_down) {
+		if(!s0.button[0]) {
 			p0.canvas.floodFill(s0.x,s0.y,p0.paint.color);
 			p0.sync_canvas = true;
 		}
-		return !s0.button_down;
+		return !s0.button[0];
 	},function(p01,s01) {
 		p01.preview.clear();
-		if(s01.button_down && p01.paint.tooldata == null) {
+		if(s01.button[0] && p01.paint.tooldata == null) {
 			p01.drawLine(p01.preview,p01.paint.x,p01.paint.y,p01.paint.x,s01.y,p01.paint.color);
 			p01.drawLine(p01.preview,p01.paint.x,p01.paint.y,s01.x,p01.paint.y,p01.paint.color);
 			p01.drawLine(p01.preview,p01.paint.x,s01.y,s01.x,s01.y,p01.paint.color);
 			p01.drawLine(p01.preview,s01.x,p01.paint.y,s01.x,s01.y,p01.paint.color);
 			return false;
-		} else if(!s01.button_down && p01.paint.tooldata == null) {
+		} else if(!s01.button[0] && p01.paint.tooldata == null) {
 			var x0 = s01.x;
 			var x1 = p01.paint.x;
 			if(x0 > p01.paint.x) {
@@ -997,16 +997,16 @@ var Main = function() {
 			td2.copyPixels(_g.editscreen.bitmapData,new openfl_geom_Rectangle(x0,y0,x1 - x0,y1 - y0),new openfl_geom_Point(0.,0.));
 			p01.paint.tooldata = { click : false, data : td, preview : td2};
 			return false;
-		} else if(s01.button_down && p01.paint.tooldata != null && !p01.paint.tooldata.click) {
+		} else if(s01.button[0] && p01.paint.tooldata != null && !p01.paint.tooldata.click) {
 			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
 			_g.previewscreen.bitmapData.copyPixels(p01.paint.tooldata.preview,p01.paint.tooldata.preview.rect,new openfl_geom_Point(s01.x - p01.paint.tooldata.preview.width / 2,s01.y - p01.paint.tooldata.preview.height / 2));
 			return false;
-		} else if(!s01.button_down && p01.paint.tooldata != null) {
+		} else if(!s01.button[0] && p01.paint.tooldata != null) {
 			_g.previewscreen.bitmapData.fillRect(_g.previewscreen.bitmapData.rect,0);
 			_g.previewscreen.bitmapData.copyPixels(p01.paint.tooldata.preview,p01.paint.tooldata.preview.rect,new openfl_geom_Point(s01.x - p01.paint.tooldata.preview.width / 2,s01.y - p01.paint.tooldata.preview.height / 2));
 			p01.paint.tooldata.click = true;
 			return false;
-		} else if(s01.button_down && p01.paint.tooldata != null && p01.paint.tooldata.click) {
+		} else if(s01.button[0] && p01.paint.tooldata != null && p01.paint.tooldata.click) {
 			p01.canvas.blit(p01.paint.tooldata.data,s01.x - p01.paint.tooldata.data.w / 2 | 0,s01.y - p01.paint.tooldata.data.h / 2 | 0,null,null);
 			p01.sync_canvas = true;
 			return true;
@@ -1028,7 +1028,10 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	onMouse: function(evt) {
 		this.state.x = evt.localX | 0;
 		this.state.y = evt.localY | 0;
-		this.state.button_down = evt.buttonDown;
+		this.state.button[0] = evt.buttonDown;
+		this.state.button[1] = evt.ctrlKey;
+		this.state.button[2] = evt.shiftKey;
+		this.state.button[3] = evt.commandKey;
 		this.state.color = this.palette[this.selected_color];
 		this.state.brush = this.brush[this.selected_brush];
 		this.state.program = this.program[this.selected_program];
@@ -23442,7 +23445,13 @@ painter_PaintState.prototype = {
 		this.brush = null;
 		this.program = null;
 		this.color = 0;
-		this.button_down = false;
+		var _g = [];
+		var _g1 = 0;
+		while(_g1 < 128) {
+			var i0 = _g1++;
+			_g.push(false);
+		}
+		this.button = _g;
 		this.tooldata = null;
 	}
 	,copy: function() {
@@ -23452,7 +23461,7 @@ painter_PaintState.prototype = {
 		ps.brush = this.brush.copy();
 		ps.program = this.program;
 		ps.color = this.color;
-		ps.button_down = this.button_down;
+		ps.button = this.button.slice();
 		if(this.tooldata != null && Object.prototype.hasOwnProperty.call(this.tooldata,"copy")) ps.tooldata = this.tooldata.copy();
 		return ps;
 	}
@@ -23473,29 +23482,84 @@ painter_Painter.defaultBrushes = function() {
 painter_Painter.defaultPalette = function() {
 	return [-16777216,-65536,-16711936,-16776961,-256,-16711681,-65281];
 };
+painter_Painter.pointsToSegments = function(p0) {
+	var r0 = [];
+	var i0 = 0;
+	while(i0 < p0.length) {
+		var from = p0[i0];
+		var to = p0[(i0 + 1) % p0.length];
+		r0.push([from[0],from[1],to[0],to[1]]);
+		i0 += 1;
+	}
+	return r0;
+};
+painter_Painter.pointsToSegmentsUnlooped = function(p0) {
+	var r0 = [];
+	var i0 = 0;
+	while(i0 < p0.length - 1) {
+		var from = p0[i0];
+		var to = p0[(i0 + 1) % p0.length];
+		r0.push([from[0],from[1],to[0],to[1]]);
+		i0 += 1;
+	}
+	return r0;
+};
+painter_Painter.distance = function(x,y) {
+	return Math.sqrt((x + y) * (x + y));
+};
+painter_Painter.distanceSqr = function(x,y) {
+	return (x + y) * (x + y);
+};
 painter_Painter.defaultPrograms = function() {
 	return [function(p0,s0) {
-		if(s0.button_down) {
+		if(s0.button[0]) {
 			p0.drawLine(p0.result,p0.paint.x,p0.paint.y,s0.x,s0.y,p0.paint.color);
 			p0.paint.x = s0.x;
 			p0.paint.y = s0.y;
 		}
-		return !s0.button_down;
+		return !s0.button[0];
 	},function(p01,s01) {
 		var target;
-		if(s01.button_down) target = p01.preview; else target = p01.result;
+		if(s01.button[0]) target = p01.preview; else target = p01.result;
 		p01.preview.clear();
 		p01.drawLine(target,p01.paint.x,p01.paint.y,s01.x,s01.y,p01.paint.color);
-		return !s01.button_down;
+		return !s01.button[0];
 	},function(p02,s02) {
 		var target1;
-		if(s02.button_down) target1 = p02.preview; else target1 = p02.result;
+		if(s02.button[0]) target1 = p02.preview; else target1 = p02.result;
 		p02.preview.clear();
-		p02.drawLine(target1,p02.paint.x,p02.paint.y,p02.paint.x,s02.y,p02.paint.color);
-		p02.drawLine(target1,p02.paint.x,p02.paint.y,s02.x,p02.paint.y,p02.paint.color);
-		p02.drawLine(target1,p02.paint.x,s02.y,s02.x,s02.y,p02.paint.color);
-		p02.drawLine(target1,s02.x,p02.paint.y,s02.x,s02.y,p02.paint.color);
-		return !s02.button_down;
+		var _g = 0;
+		var _g1 = painter_Painter.pointsToSegments([[p02.paint.x,p02.paint.y],[p02.paint.x,s02.y],[s02.x,s02.y],[s02.x,p02.paint.y]]);
+		while(_g < _g1.length) {
+			var c0 = _g1[_g];
+			++_g;
+			p02.drawLine(target1,c0[0],c0[1],c0[2],c0[3],p02.paint.color);
+		}
+		return !s02.button[0];
+	},function(p03,s03) {
+		var target2;
+		if(s03.button[0]) target2 = p03.preview; else target2 = p03.result;
+		p03.preview.clear();
+		var r = painter_Painter.distance(p03.paint.x - s03.x,p03.paint.y - s03.y);
+		var c = 2 * Math.PI * r;
+		var pts = [];
+		var _g11 = 0;
+		var _g2 = c | 0;
+		while(_g11 < _g2) {
+			var i0 = _g11++;
+			var a = i0 / c * Math.PI * 2;
+			var y = Math.round(Math.sin(a) * r) + p03.paint.x;
+			var x = Math.round(Math.cos(a) * r) + p03.paint.y;
+			pts.push([x,y]);
+		}
+		var _g3 = 0;
+		var _g12 = painter_Painter.pointsToSegments(pts);
+		while(_g3 < _g12.length) {
+			var c01 = _g12[_g3];
+			++_g3;
+			p03.drawLine(target2,c01[0],c01[1],c01[2],c01[3],p03.paint.color);
+		}
+		return !s03.button[0];
 	}];
 };
 painter_Painter.prototype = {
@@ -23525,7 +23589,7 @@ painter_Painter.prototype = {
 		this.result.clear();
 		this.complete = false;
 		this.sync_canvas = false;
-		if(state.button_down) {
+		if(state.button[0]) {
 			if(this.paint == null) this.paint = state.copy();
 		}
 		if(this.paint != null) {
