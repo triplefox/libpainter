@@ -322,4 +322,19 @@ class VectorCanvas {
 		return squareValue;
 	}	
 	
+	/* given a canvas of positively indexed colors, output a new canvas where each island of connected color is marked,
+	 * starting from -1 at top left and counting downwards(-2, -3...). */
+	public function getIslands() {
+		var result = this.copy();
+		var isle = -1;
+		var paints = new Array<PaintResult>();
+		for (i0 in 0...result.d.length) {
+			if (result.d[i0] >= 0) {
+				paints.push(result.floodFill(xIdx(i0), yIdx(i0), isle));
+				isle -= 1;
+			}
+		}
+		return {canvas:result,paints:paints};
+	}
+	
 }

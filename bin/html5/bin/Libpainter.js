@@ -23489,6 +23489,51 @@ painter_Painter.defaultBrushes = function() {
 painter_Painter.defaultPalette = function() {
 	return [-16777216,-65536,-16711936,-16776961,-256,-16711681,-65281];
 };
+painter_Painter.inwardSpiralPoints = function(w,h,subw,subh,x,y,step) {
+	if(step == null) step = 0;
+	if(y == null) y = 0;
+	if(x == null) x = 0;
+	var result = [];
+	var x1 = 0;
+	var y1 = 0;
+	var sw = 0;
+	var sh = 0;
+	while(sw - w > 0 && sh - h > 0) {
+		if(step == 0) {
+			while(x1 < w - sw) {
+				x1 += 1;
+				result.push([x1,y1]);
+			}
+			sw += subw;
+			step += 1;
+		}
+		if(step == 1) {
+			while(y1 < h - sh) {
+				y1 += 1;
+				result.push([x1,y1]);
+			}
+			sh += subh;
+			step += 1;
+		}
+		if(step == 2) {
+			while(x1 >= sw) {
+				x1 -= 1;
+				result.push([x1,y1]);
+			}
+			sw += subw;
+			step += 1;
+		}
+		if(step == 3) {
+			while(y1 >= sh) {
+				y1 -= 1;
+				result.push([x1,y1]);
+			}
+			sh += subh;
+			step += 1;
+		}
+	}
+	return result;
+};
 painter_Painter.pointsToSegments = function(p0) {
 	var r0 = [];
 	var i0 = 0;
@@ -23684,7 +23729,6 @@ painter_Painter.defaultPrograms = function() {
 				_g6.push([n[0] + 0.,n[1] + 0.]);
 			}
 			msf = _g6;
-			haxe_Log.trace(msf.length,{ fileName : "Painter.hx", lineNumber : 182, className : "painter.Painter", methodName : "defaultPrograms"});
 			msf = painter_Painter.ramerDouglasPecker(msf,0.5);
 			var _g16 = [];
 			var _g22 = 0;
@@ -23694,7 +23738,6 @@ painter_Painter.defaultPrograms = function() {
 				_g16.push([n1[0] | 0,n1[1] | 0]);
 			}
 			ms = _g16;
-			haxe_Log.trace(ms.length,{ fileName : "Painter.hx", lineNumber : 185, className : "painter.Painter", methodName : "defaultPrograms"});
 			var _g23 = 0;
 			var _g32 = painter_Painter.pointsToSegmentsUnlooped(ms);
 			while(_g23 < _g32.length) {
@@ -24154,6 +24197,21 @@ painter_VectorCanvas.prototype = {
 		if(this.inbounds(pX - 1,pY) && this.d[this.w * pY + (pX - 1)] == seed) squareValue += 4;
 		if(pX >= 0 && pX < this.w && pY >= 0 && pY < this.h && this.d[this.w * pY + pX] == seed) squareValue += 8;
 		return squareValue;
+	}
+	,getIslands: function() {
+		var result = this.copy();
+		var isle = -1;
+		var paints = [];
+		var _g1 = 0;
+		var _g = result.d.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			if(result.d[i0] >= 0) {
+				paints.push(result.floodFill(i0 % this.w,i0 / this.h | 0,isle));
+				isle -= 1;
+			}
+		}
+		return { canvas : result, paints : paints};
 	}
 	,__class__: painter_VectorCanvas
 };
