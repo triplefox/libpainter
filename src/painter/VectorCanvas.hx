@@ -289,6 +289,34 @@ class VectorCanvas {
 		}
 		return -1;
 	}
+	
+	/* get the first non-matching index of this seed */
+	public function getFirstNotSeed(seed : Int):Int {
+		for (i0 in 0...d.length) {
+			if (d[i0] != seed) { return i0; }
+		}
+		return -1;
+	}
+	
+	/* walk a spiral pattern until the first point not matching the seed is found */
+	public function inwardSpiralNotSeed(seed : Int) {
+		/* this is a very simple implementation that just uses a second canvas. */
+		var marking = new VectorCanvas(); marking.init(w, h); marking.clear(0);
+		var x = 0;
+		var y = 0;
+		var step = 0;
+		if (get(x, y) != seed) return getIdx(x, y);
+		while (marking.get(x, y) == 0 && step >= 0) {
+			marking.set(x, y, 1);
+			if (x + 1 < w && marking.get(x + 1, y) == 0) { x += 1; }			
+			else if (y + 1 < h && marking.get(x, y + 1) == 0) { y += 1; }			
+			else if (x - 1 >= 0 && marking.get(x - 1, y) == 0) { x -= 1; } 			
+			else if (y - 1 >= 0 && marking.get(x, y - 1) == 0) { y -= 1; }
+			if (get(x, y) != seed) return getIdx(x, y);
+		}
+		return -1;
+	}
+	
 
 	public function getSquareValue(pX:Int,pY:Int,seed:Int):Int {
 		/*

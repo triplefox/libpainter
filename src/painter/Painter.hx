@@ -31,23 +31,6 @@ class Painter {
 		];
 	}
 	
-	/* generate a spiral pattern of points given the width and height. */
-	public static function inwardSpiralPoints(w : Int, h : Int, ?subw : Int=1, ?subh : Int=1, ?x = 0, ?y = 0, ?step = 0) {
-		var result = new Array<Array<Int>>();
-		var x = 0;
-		var y = 0;
-		var sw = 0;
-		var sh = 0;
-		while (sw - w > 0 && sh - h > 0) {
-			if (step == 0) { while (x < w - sw) { x += 1; result.push([x, y]); } sw += subw; step += 1; }
-			if (step == 1) { while (y < h - sh) { y += 1; result.push([x, y]); } sh += subh; step += 1; }
-			if (step == 2) { while (x >= sw) { x -= 1; result.push([x, y]); } sw += subw; step += 1; }
-			if (step == 3) { while (y >= sh) { y -= 1; result.push([x, y]); } sh += subh; step += 1; }
-			if (step >= 4 || step < 0) step = 0;
-		}
-		return result;
-	}
-	
 	public static function pointsToSegments(p0 : Array<Array<Int>>) {
 		var r0 = new Array<Array<Int>>();
 		var i0 = 0;
@@ -115,6 +98,11 @@ class Painter {
 				}
 				return !s0.button[0];
 			},
+			function(p0 : Painter, s0 : PaintState) { /* spiral test */
+				var target : PaintResult;
+				trace(p0.canvas.inwardSpiralNotSeed(p0.canvas.get(Std.int(s0.x), Std.int(s0.y))));
+				return !s0.button[0];
+			},			
 			function(p0 : Painter, s0 : PaintState) { /* line */
 				var target : PaintResult;
 				if (s0.button[0]) target = p0.preview; else target = p0.result;

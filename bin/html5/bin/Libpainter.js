@@ -23489,51 +23489,6 @@ painter_Painter.defaultBrushes = function() {
 painter_Painter.defaultPalette = function() {
 	return [-16777216,-65536,-16711936,-16776961,-256,-16711681,-65281];
 };
-painter_Painter.inwardSpiralPoints = function(w,h,subw,subh,x,y,step) {
-	if(step == null) step = 0;
-	if(y == null) y = 0;
-	if(x == null) x = 0;
-	var result = [];
-	var x1 = 0;
-	var y1 = 0;
-	var sw = 0;
-	var sh = 0;
-	while(sw - w > 0 && sh - h > 0) {
-		if(step == 0) {
-			while(x1 < w - sw) {
-				x1 += 1;
-				result.push([x1,y1]);
-			}
-			sw += subw;
-			step += 1;
-		}
-		if(step == 1) {
-			while(y1 < h - sh) {
-				y1 += 1;
-				result.push([x1,y1]);
-			}
-			sh += subh;
-			step += 1;
-		}
-		if(step == 2) {
-			while(x1 >= sw) {
-				x1 -= 1;
-				result.push([x1,y1]);
-			}
-			sw += subw;
-			step += 1;
-		}
-		if(step == 3) {
-			while(y1 >= sh) {
-				y1 -= 1;
-				result.push([x1,y1]);
-			}
-			sh += subh;
-			step += 1;
-		}
-	}
-	return result;
-};
 painter_Painter.pointsToSegments = function(p0) {
 	var r0 = [];
 	var i0 = 0;
@@ -23630,78 +23585,82 @@ painter_Painter.defaultPrograms = function() {
 		return !s0.button[0];
 	},function(p01,s01) {
 		var target;
-		if(s01.button[0]) target = p01.preview; else target = p01.result;
-		p01.preview.clear();
-		p01.drawLine(target,p01.paint.x | 0,p01.paint.y | 0,s01.x | 0,s01.y | 0,p01.paint.color);
+		haxe_Log.trace(p01.canvas.inwardSpiralNotSeed(p01.canvas.get(s01.x | 0,s01.y | 0)),{ fileName : "Painter.hx", lineNumber : 103, className : "painter.Painter", methodName : "defaultPrograms"});
 		return !s01.button[0];
 	},function(p02,s02) {
 		var target1;
 		if(s02.button[0]) target1 = p02.preview; else target1 = p02.result;
-		var x0 = p02.paint.x | 0;
-		var x1 = s02.x | 0;
-		var y0 = p02.paint.y | 0;
-		var y1 = s02.y | 0;
 		p02.preview.clear();
+		p02.drawLine(target1,p02.paint.x | 0,p02.paint.y | 0,s02.x | 0,s02.y | 0,p02.paint.color);
+		return !s02.button[0];
+	},function(p03,s03) {
+		var target2;
+		if(s03.button[0]) target2 = p03.preview; else target2 = p03.result;
+		var x0 = p03.paint.x | 0;
+		var x1 = s03.x | 0;
+		var y0 = p03.paint.y | 0;
+		var y1 = s03.y | 0;
+		p03.preview.clear();
 		var _g = 0;
 		var _g1 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
 		while(_g < _g1.length) {
 			var c0 = _g1[_g];
 			++_g;
-			p02.drawLine(target1,c0[0],c0[1],c0[2],c0[3],p02.paint.color);
-		}
-		return !s02.button[0];
-	},function(p03,s03) {
-		var target2;
-		if(s03.button[0]) target2 = p03.preview; else target2 = p03.result;
-		p03.preview.clear();
-		var r = painter_Painter.distance(s03.x - p03.paint.x,s03.y - p03.paint.y);
-		var _g2 = 0;
-		var _g11 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p03.paint.x,p03.paint.x + r,p03.paint.y,p03.paint.y + r));
-		while(_g2 < _g11.length) {
-			var c01 = _g11[_g2];
-			++_g2;
-			p03.drawLine(target2,c01[0],c01[1],c01[2],c01[3],p03.paint.color);
+			p03.drawLine(target2,c0[0],c0[1],c0[2],c0[3],p03.paint.color);
 		}
 		return !s03.button[0];
 	},function(p04,s04) {
 		var target3;
 		if(s04.button[0]) target3 = p04.preview; else target3 = p04.result;
 		p04.preview.clear();
-		var _g3 = 0;
-		var _g12 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p04.paint.x,s04.x,p04.paint.y,s04.y));
-		while(_g3 < _g12.length) {
-			var c02 = _g12[_g3];
-			++_g3;
-			p04.drawLine(target3,c02[0],c02[1],c02[2],c02[3],p04.paint.color);
+		var r = painter_Painter.distance(s04.x - p04.paint.x,s04.y - p04.paint.y);
+		var _g2 = 0;
+		var _g11 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p04.paint.x,p04.paint.x + r,p04.paint.y,p04.paint.y + r));
+		while(_g2 < _g11.length) {
+			var c01 = _g11[_g2];
+			++_g2;
+			p04.drawLine(target3,c01[0],c01[1],c01[2],c01[3],p04.paint.color);
 		}
 		return !s04.button[0];
 	},function(p05,s05) {
-		if(!s05.button[0]) {
-			p05.canvas.floodFill(s05.x | 0,s05.y | 0,p05.paint.color);
-			p05.sync_canvas = true;
+		var target4;
+		if(s05.button[0]) target4 = p05.preview; else target4 = p05.result;
+		p05.preview.clear();
+		var _g3 = 0;
+		var _g12 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p05.paint.x,s05.x,p05.paint.y,s05.y));
+		while(_g3 < _g12.length) {
+			var c02 = _g12[_g3];
+			++_g3;
+			p05.drawLine(target4,c02[0],c02[1],c02[2],c02[3],p05.paint.color);
 		}
 		return !s05.button[0];
 	},function(p06,s06) {
 		if(!s06.button[0]) {
-			var df = p06.canvas.dijkstraFlood(s06.x | 0,s06.y | 0,null);
+			p06.canvas.floodFill(s06.x | 0,s06.y | 0,p06.paint.color);
+			p06.sync_canvas = true;
+		}
+		return !s06.button[0];
+	},function(p07,s07) {
+		if(!s07.button[0]) {
+			var df = p07.canvas.dijkstraFlood(s07.x | 0,s07.y | 0,null);
 			var _g13 = 0;
 			var _g4 = df.canvas.d.length;
 			while(_g13 < _g4) {
 				var i0 = _g13++;
 				df.canvas.d[i0] = -16777216 | df.canvas.d[i0] | df.canvas.d[i0] << 8 | df.canvas.d[i0] << 16;
 			}
-			p06.canvas.blit(df.canvas,0,0,null,null);
-			p06.sync_canvas = true;
+			p07.canvas.blit(df.canvas,0,0,null,null);
+			p07.sync_canvas = true;
 		}
-		return !s06.button[0];
-	},function(p07,s07) {
-		var target4;
-		p07.preview.clear();
-		if(s07.button[0]) p07.drawLine(p07.preview,p07.paint.x | 0,p07.paint.y | 0,s07.x | 0,s07.y | 0,p07.paint.color); else {
-			var df1 = p07.canvas.dijkstraFlood(s07.x | 0,s07.y | 0,null);
-			var midx = p07.paint.x + (s07.x - p07.paint.x) / 2;
-			var midy = p07.paint.y + (s07.y - p07.paint.y) / 2;
-			var dp = df1.canvas.dijkstraNaturalPath4(p07.paint.x | 0,p07.paint.y | 0,midx | 0,midy | 0);
+		return !s07.button[0];
+	},function(p08,s08) {
+		var target5;
+		p08.preview.clear();
+		if(s08.button[0]) p08.drawLine(p08.preview,p08.paint.x | 0,p08.paint.y | 0,s08.x | 0,s08.y | 0,p08.paint.color); else {
+			var df1 = p08.canvas.dijkstraFlood(s08.x | 0,s08.y | 0,null);
+			var midx = p08.paint.x + (s08.x - p08.paint.x) / 2;
+			var midy = p08.paint.y + (s08.y - p08.paint.y) / 2;
+			var dp = df1.canvas.dijkstraNaturalPath4(p08.paint.x | 0,p08.paint.y | 0,midx | 0,midy | 0);
 			var _g14 = 0;
 			var _g5 = dp.length;
 			while(_g14 < _g5) {
@@ -23709,17 +23668,17 @@ painter_Painter.defaultPrograms = function() {
 				var xr = dp.data[c03 * 3];
 				var yr = dp.data[c03 * 3 + 1];
 				var _g31 = 0;
-				var _g21 = p07.paint.brush.length;
+				var _g21 = p08.paint.brush.length;
 				while(_g31 < _g21) {
 					var v0 = _g31++;
-					p07.result.push(xr + p07.paint.brush.data[v0 * 3],yr + p07.paint.brush.data[v0 * 3 + 1],p07.paint.color);
+					p08.result.push(xr + p08.paint.brush.data[v0 * 3],yr + p08.paint.brush.data[v0 * 3 + 1],p08.paint.color);
 				}
 			}
 		}
-		return !s07.button[0];
-	},function(p08,s08) {
-		if(!s08.button[0]) {
-			var ms = p08.canvas.marchingSquares(s08.x | 0,s08.y | 0);
+		return !s08.button[0];
+	},function(p09,s09) {
+		if(!s09.button[0]) {
+			var ms = p09.canvas.marchingSquares(s09.x | 0,s09.y | 0);
 			var msf;
 			var _g6 = [];
 			var _g15 = 0;
@@ -23743,10 +23702,10 @@ painter_Painter.defaultPrograms = function() {
 			while(_g23 < _g32.length) {
 				var c04 = _g32[_g23];
 				++_g23;
-				p08.drawLine(p08.result,c04[0],c04[1],c04[2],c04[3],p08.paint.color);
+				p09.drawLine(p09.result,c04[0],c04[1],c04[2],c04[3],p09.paint.color);
 			}
 		}
-		return !s08.button[0];
+		return !s09.button[0];
 	}];
 };
 painter_Painter.ramerDouglasPecker = function(v,epsilon) {
@@ -24187,6 +24146,30 @@ painter_VectorCanvas.prototype = {
 		while(_g1 < _g) {
 			var i0 = _g1++;
 			if(this.d[i0] == seed) return i0;
+		}
+		return -1;
+	}
+	,getFirstNotSeed: function(seed) {
+		var _g1 = 0;
+		var _g = this.d.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			if(this.d[i0] != seed) return i0;
+		}
+		return -1;
+	}
+	,inwardSpiralNotSeed: function(seed) {
+		var marking = new painter_VectorCanvas();
+		marking.init(this.w,this.h);
+		marking.clear(0);
+		var x = 0;
+		var y = 0;
+		var step = 0;
+		if((x >= 0 && x < this.w && y >= 0 && y < this.h?this.d[this.w * y + x]:this.d[0]) != seed) return this.w * y + x;
+		while((x >= 0 && x < marking.w && y >= 0 && y < marking.h?marking.d[marking.w * y + x]:marking.d[0]) == 0 && step >= 0) {
+			if(x >= 0 && x < marking.w && y >= 0 && y < marking.h) marking.d[marking.w * y + x] = 1;
+			if(x + 1 < this.w && marking.get(x + 1,y) == 0) x += 1; else if(y + 1 < this.h && marking.get(x,y + 1) == 0) y += 1; else if(x - 1 >= 0 && marking.get(x - 1,y) == 0) x -= 1; else if(y - 1 >= 0 && marking.get(x,y - 1) == 0) y -= 1;
+			if((x >= 0 && x < this.w && y >= 0 && y < this.h?this.d[this.w * y + x]:this.d[0]) != seed) return this.w * y + x;
 		}
 		return -1;
 	}
