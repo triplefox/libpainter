@@ -175,11 +175,7 @@ class Painter {
 					var midx = p0.paint.x + (s0.x - p0.paint.x) / 2;
 					var midy = p0.paint.y + (s0.y - p0.paint.y) / 2;
 					var dp = df.canvas.dijkstraNaturalPath4(Std.int(p0.paint.x), Std.int(p0.paint.y), Std.int(midx), Std.int(midy));
-					for (c0 in 0...dp.length) {
-						var xr = dp.data[c0 * 3]; var yr = dp.data[c0 * 3 + 1];
-						for (v0 in 0...p0.paint.brush.length)
-							p0.result.push(xr + p0.paint.brush.data[v0*3], yr + p0.paint.brush.data[v0*3 + 1], p0.paint.color);
-					}
+					dp.stroke(p0.result, p0.paint.brush, p0.paint.color);
 				}
 				return !s0.button[0];
 			},

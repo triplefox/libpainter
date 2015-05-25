@@ -1485,10 +1485,7 @@ var StringBuf = function() {
 $hxClasses["StringBuf"] = StringBuf;
 StringBuf.__name__ = ["StringBuf"];
 StringBuf.prototype = {
-	add: function(x) {
-		this.b += Std.string(x);
-	}
-	,__class__: StringBuf
+	__class__: StringBuf
 };
 var StringTools = function() { };
 $hxClasses["StringTools"] = StringTools;
@@ -1722,9 +1719,6 @@ haxe_CallStack.makeStack = function(s) {
 var haxe_IMap = function() { };
 $hxClasses["haxe.IMap"] = haxe_IMap;
 haxe_IMap.__name__ = ["haxe","IMap"];
-haxe_IMap.prototype = {
-	__class__: haxe_IMap
-};
 var haxe__$Int64__$_$_$Int64 = function(high,low) {
 	this.high = high;
 	this.low = low;
@@ -1872,9 +1866,6 @@ haxe_ds_BalancedTree.prototype = {
 	,compare: function(k1,k2) {
 		return Reflect.compare(k1,k2);
 	}
-	,toString: function() {
-		if(this.root == null) return "{}"; else return "{" + this.root.toString() + "}";
-	}
 	,__class__: haxe_ds_BalancedTree
 };
 var haxe_ds_TreeNode = function(l,k,v,r,h) {
@@ -1908,10 +1899,7 @@ var haxe_ds_TreeNode = function(l,k,v,r,h) {
 $hxClasses["haxe.ds.TreeNode"] = haxe_ds_TreeNode;
 haxe_ds_TreeNode.__name__ = ["haxe","ds","TreeNode"];
 haxe_ds_TreeNode.prototype = {
-	toString: function() {
-		return (this.left == null?"":this.left.toString() + ", ") + ("" + Std.string(this.key) + "=" + Std.string(this.value)) + (this.right == null?"":", " + this.right.toString());
-	}
-	,__class__: haxe_ds_TreeNode
+	__class__: haxe_ds_TreeNode
 };
 var haxe_ds_EnumValueMap = function() {
 	haxe_ds_BalancedTree.call(this);
@@ -1968,20 +1956,6 @@ haxe_ds_IntMap.prototype = {
 			return this.ref[i];
 		}};
 	}
-	,toString: function() {
-		var s_b = "";
-		s_b += "{";
-		var it = this.keys();
-		while( it.hasNext() ) {
-			var i = it.next();
-			if(i == null) s_b += "null"; else s_b += "" + i;
-			s_b += " => ";
-			s_b += Std.string(Std.string(this.h[i]));
-			if(it.hasNext()) s_b += ", ";
-		}
-		s_b += "}";
-		return s_b;
-	}
 	,__class__: haxe_ds_IntMap
 };
 var haxe_ds_ObjectMap = function() {
@@ -1996,27 +1970,6 @@ haxe_ds_ObjectMap.prototype = {
 		var id = key.__id__ || (key.__id__ = ++haxe_ds_ObjectMap.count);
 		this.h[id] = value;
 		this.h.__keys__[id] = key;
-	}
-	,keys: function() {
-		var a = [];
-		for( var key in this.h.__keys__ ) {
-		if(this.h.hasOwnProperty(key)) a.push(this.h.__keys__[key]);
-		}
-		return HxOverrides.iter(a);
-	}
-	,toString: function() {
-		var s_b = "";
-		s_b += "{";
-		var it = this.keys();
-		while( it.hasNext() ) {
-			var i = it.next();
-			s_b += Std.string(Std.string(i));
-			s_b += " => ";
-			s_b += Std.string(Std.string(this.h[i.__id__]));
-			if(it.hasNext()) s_b += ", ";
-		}
-		s_b += "}";
-		return s_b;
 	}
 	,__class__: haxe_ds_ObjectMap
 };
@@ -2096,23 +2049,6 @@ haxe_ds_StringMap.prototype = {
 	}
 	,iterator: function() {
 		return new haxe_ds__$StringMap_StringMapIterator(this,this.arrayKeys());
-	}
-	,toString: function() {
-		var s = new StringBuf();
-		s.b += "{";
-		var keys = this.arrayKeys();
-		var _g1 = 0;
-		var _g = keys.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var k = keys[i];
-			if(k == null) s.b += "null"; else s.b += "" + k;
-			s.b += " => ";
-			s.add(Std.string(__map_reserved[k] != null?this.getReserved(k):this.h[k]));
-			if(i < keys.length) s.b += ", ";
-		}
-		s.b += "}";
-		return s.b;
 	}
 	,__class__: haxe_ds_StringMap
 };
@@ -23503,6 +23439,21 @@ painter_PaintResult.prototype = {
 		}
 		return _g;
 	}
+	,stroke: function(dest,brush,color) {
+		var _g1 = 0;
+		var _g = this.length;
+		while(_g1 < _g) {
+			var c0 = _g1++;
+			var xr = this.data[c0 * 3];
+			var yr = this.data[c0 * 3 + 1];
+			var _g3 = 0;
+			var _g2 = brush.length;
+			while(_g3 < _g2) {
+				var v0 = _g3++;
+				dest.push(xr + brush.data[v0 * 3],yr + brush.data[v0 * 3 + 1],color);
+			}
+		}
+	}
 	,__class__: painter_PaintResult
 };
 var painter_PaintState = function() {
@@ -23651,20 +23602,8 @@ painter_Painter.defaultPrograms = function() {
 		var target;
 		if(!s01.button[0]) {
 			var islands = p01.canvas.getIslands();
-			haxe_Log.trace((function($this) {
-				var $r;
-				var this1 = islands.canvas.colorCount();
-				$r = this1.toString();
-				return $r;
-			}(this)),{ fileName : "Painter.hx", lineNumber : 105, className : "painter.Painter", methodName : "defaultPrograms"});
 			p01.canvas.blit(islands.canvas,0,0,null,null);
 			p01.canvas.remapMonochrome(15);
-			haxe_Log.trace((function($this) {
-				var $r;
-				var this2 = p01.canvas.colorCount();
-				$r = this2.toString();
-				return $r;
-			}(this)),{ fileName : "Painter.hx", lineNumber : 108, className : "painter.Painter", methodName : "defaultPrograms"});
 			p01.sync_canvas = true;
 		}
 		return !s01.button[0];
@@ -23737,48 +23676,36 @@ painter_Painter.defaultPrograms = function() {
 			var midx = p08.paint.x + (s08.x - p08.paint.x) / 2;
 			var midy = p08.paint.y + (s08.y - p08.paint.y) / 2;
 			var dp = df1.canvas.dijkstraNaturalPath4(p08.paint.x | 0,p08.paint.y | 0,midx | 0,midy | 0);
-			var _g13 = 0;
-			var _g4 = dp.length;
-			while(_g13 < _g4) {
-				var c03 = _g13++;
-				var xr = dp.data[c03 * 3];
-				var yr = dp.data[c03 * 3 + 1];
-				var _g31 = 0;
-				var _g21 = p08.paint.brush.length;
-				while(_g31 < _g21) {
-					var v0 = _g31++;
-					p08.result.push(xr + p08.paint.brush.data[v0 * 3],yr + p08.paint.brush.data[v0 * 3 + 1],p08.paint.color);
-				}
-			}
+			dp.stroke(p08.result,p08.paint.brush,p08.paint.color);
 		}
 		return !s08.button[0];
 	},function(p09,s09) {
 		if(!s09.button[0]) {
 			var ms = p09.canvas.marchingSquares(s09.x | 0,s09.y | 0);
 			var msf;
-			var _g5 = [];
-			var _g14 = 0;
-			while(_g14 < ms.length) {
-				var n = ms[_g14];
-				++_g14;
-				_g5.push([n[0] + 0.,n[1] + 0.]);
+			var _g4 = [];
+			var _g13 = 0;
+			while(_g13 < ms.length) {
+				var n = ms[_g13];
+				++_g13;
+				_g4.push([n[0] + 0.,n[1] + 0.]);
 			}
-			msf = _g5;
+			msf = _g4;
 			msf = painter_Painter.ramerDouglasPecker(msf,0.5);
-			var _g15 = [];
-			var _g22 = 0;
-			while(_g22 < msf.length) {
-				var n1 = msf[_g22];
-				++_g22;
-				_g15.push([n1[0] | 0,n1[1] | 0]);
+			var _g14 = [];
+			var _g21 = 0;
+			while(_g21 < msf.length) {
+				var n1 = msf[_g21];
+				++_g21;
+				_g14.push([n1[0] | 0,n1[1] | 0]);
 			}
-			ms = _g15;
-			var _g23 = 0;
-			var _g32 = painter_Painter.pointsToSegmentsUnlooped(ms);
-			while(_g23 < _g32.length) {
-				var c04 = _g32[_g23];
-				++_g23;
-				p09.drawLine(p09.result,c04[0],c04[1],c04[2],c04[3],p09.paint.color);
+			ms = _g14;
+			var _g22 = 0;
+			var _g31 = painter_Painter.pointsToSegmentsUnlooped(ms);
+			while(_g22 < _g31.length) {
+				var c03 = _g31[_g22];
+				++_g22;
+				p09.drawLine(p09.result,c03[0],c03[1],c03[2],c03[3],p09.paint.color);
 			}
 		}
 		return !s09.button[0];

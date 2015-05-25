@@ -42,4 +42,12 @@ class PaintResult {
 	public function toString() {
 		return [for (i0 in 0...length) data[i0]];
 	}
+	public function stroke(dest : PaintResult, brush : PaintResult, color : Int) {
+		for (c0 in 0...length) {
+			var xr = data[c0 * 3]; var yr = data[c0 * 3 + 1];
+			for (v0 in 0...brush.length)
+				dest.push(xr + brush.data[v0*3], yr + brush.data[v0*3 + 1], color);
+		}		
+	}
+	
 }
