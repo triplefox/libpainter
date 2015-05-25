@@ -18,7 +18,9 @@ class VectorCanvas {
 		for ( i0 in 0...d.length) d[i0] = v;
 	}
 	public function copy() {
-		var r = new VectorCanvas(); r.w = w; r.h = h; Vector.blit(d, 0, r.d, 0, d.length); return r;
+		var r = new VectorCanvas(); 
+		r.init(this.w, this.h);
+		Vector.blit(d, 0, r.d, 0, d.length); return r;
 	}
 	
 	public inline function xIdx(idx : Int) { return idx % w; }
@@ -150,8 +152,6 @@ class VectorCanvas {
 				else if (a[3] > b[3]) { return 1; }
 				else { return a[2] - b[2]; }
 			} );
-			trace(v);
-			trace(pref);
 			tv = pref[0][3]; tx = pref[0][0]; ty = pref[0][1];
 			if (tv < v) { result.push(x,y,v); x = tx; y = ty; v = tv; }
 			else {break;}
@@ -298,8 +298,8 @@ class VectorCanvas {
 		return -1;
 	}
 	
-	/* walk a spiral pattern until the first point not matching the seed is found */
-	public function inwardSpiralNotSeed(seed : Int) {
+	/* walk a spiral pattern until the first point (not, if not is true) matching the seed is found */
+	public function getInwardSpiralSeed(seed : Int, not : Bool) {
 		/* this is a very simple implementation that just uses a second canvas. */
 		var marking = new VectorCanvas(); marking.init(w, h); marking.clear(0);
 		var x = 0;
@@ -312,7 +312,8 @@ class VectorCanvas {
 			else if (y + 1 < h && marking.get(x, y + 1) == 0) { y += 1; }			
 			else if (x - 1 >= 0 && marking.get(x - 1, y) == 0) { x -= 1; } 			
 			else if (y - 1 >= 0 && marking.get(x, y - 1) == 0) { y -= 1; }
-			if (get(x, y) != seed) return getIdx(x, y);
+			if (not && (get(x, y) != seed)) return getIdx(x, y);
+			else if (!not && (get(x, y) == seed)) return getIdx(x, y);
 		}
 		return -1;
 	}
@@ -351,18 +352,52 @@ class VectorCanvas {
 	}	
 	
 	/* given a canvas of positively indexed colors, output a new canvas where each island of connected color is marked,
-	 * starting from -1 at top left and counting downwards(-2, -3...). */
+	 * starting from 1 at top left and counting upwards(2, 3...). */
 	public function getIslands() {
-		var result = this.copy();
-		var isle = -1;
+		var working = this.copy();
+		var result = new VectorCanvas(); result.init(w, h);
+		var isle = 1;
 		var paints = new Array<PaintResult>();
 		for (i0 in 0...result.d.length) {
-			if (result.d[i0] >= 0) {
-				paints.push(result.floodFill(xIdx(i0), yIdx(i0), isle));
-				isle -= 1;
+			if (working.d[i0] != -1) {
+				var paint = working.floodFill(xIdx(i0), yIdx(i0), -1);
+				for (i0 in 0...paint.length) {
+					var px = paint.data[i0 * 3];
+					var py = paint.data[i0 * 3 + 1];
+					result.rawset(px, py, isle);
+				}
+				paints.push(paint);
+				isle += 1;
 			}
 		}
 		return {canvas:result,paints:paints};
+	}
+	
+	/* remap the colors from 0, 1, 2, 3... to 
+	 * a visible monochrome spectrum at the given interval
+	 * */
+	public function remapMonochrome(mult : Int) {
+		for (i0 in 0...d.length) {
+			var m = Std.int(d[i0] * mult) & 0xFF;
+			d[i0] = 0xFF000000 | m | (m << 8) | (m << 16);
+		}
+	}
+	
+	/* flip the sign of the colors. */
+	public function remapNegate() {
+		for (i0 in 0...d.length) {
+			d[i0] = -d[i0];
+		}
+	}
+	
+	/* return a map of (color, # of instances). */
+	public function colorCount() {
+		var result = new Map<Int,Int>();
+		for (c in d) {
+			if (result.exists(c)) result.set(c, result.get(c) + 1);
+			else result.set(c, 1);
+		}
+		return result;
 	}
 	
 }
