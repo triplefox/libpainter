@@ -32,7 +32,15 @@ class Main extends Sprite
 	public var brush : Array<PaintResult>;
 	
 	/* Right now copy-paste mixes the "preview" mode with the actual canvas ops. Can it be better? */
-	/* Implement edge tracing on VectorCanvas. */
+	/* Existing outline tracing does not account for holes. We should test for them and spawn additional outlines,
+	 * but not do this by default(since it won't matter for every shape).
+	 * 
+	 * Our algorithm is: copy the flood of the original into a new canvas. Then there are only two colors in the canvas.
+	 * Detect an exterior point on the canvas by spiraling inwards. Island. Fill the original and the exterior.
+	 * Return each island for marching squares computation.
+	 * 
+	 * */
+	/* Implement some convex decomposition algorithm. */
 	
 	public function new() 
 	{
