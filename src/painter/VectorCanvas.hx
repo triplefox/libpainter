@@ -399,6 +399,18 @@ class VectorCanvas {
 		return {canvas:result,paints:paints};
 	}
 	
+	/* Detect whether this contiguous shape touches the edge of the canvas.
+	   if it's at canvas edge, it's exterior. */
+	public function isExterior(x0 : Int, y0 : Int) {
+		var mark = floodMark(x0, y0);
+		for (i0 in 0...mark.paint.length) {
+			var x = mark.paint.getX(i0);
+			var y = mark.paint.getY(i0);
+			if (x == 0 || x == w - 1 || y == 0 || y == h - 1) return true;
+		}
+		return false;
+	}
+	
 	/* remap the colors from 0, 1, 2, 3... to 
 	 * a visible monochrome spectrum at the given interval
 	 * */

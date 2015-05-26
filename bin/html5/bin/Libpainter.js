@@ -23632,56 +23632,56 @@ painter_Painter.defaultPrograms = function() {
 			var sx = s01.x | 0;
 			var sy = s01.y | 0;
 			var pass1 = p01.canvas.floodMark(sx,sy);
-			var exterioridx = pass1.canvas.getFirstSeed(0);
-			var interioridx = pass1.canvas.getFirstSeed(1);
+			var shape_is_exterior = p01.canvas.isExterior(sx,sy);
+			var shapeidx = pass1.canvas.getFirstSeed(1);
 			var pass2 = pass1.canvas.getIslands();
 			var island_tl = [];
-			var exteriorseed = pass2.canvas.d[exterioridx];
 			var _g = 0;
 			var _g1 = pass2.paints;
 			while(_g < _g1.length) {
 				var island = _g1[_g];
 				++_g;
 				var seed = island.getColor(0);
-				haxe_Log.trace(seed,{ fileName : "Painter.hx", lineNumber : 115, className : "painter.Painter", methodName : "defaultPrograms"});
-				if(seed != exteriorseed) island_tl.push(pass2.canvas.getFirstSeed(seed));
+				island_tl.push(pass2.canvas.getFirstSeed(seed));
 			}
-			haxe_Log.trace("hoi",{ fileName : "Painter.hx", lineNumber : 120, className : "painter.Painter", methodName : "defaultPrograms"});
-			haxe_Log.trace(exteriorseed,{ fileName : "Painter.hx", lineNumber : 121, className : "painter.Painter", methodName : "defaultPrograms"});
-			var _g2 = 0;
-			while(_g2 < island_tl.length) {
-				var i0 = island_tl[_g2];
-				++_g2;
-				haxe_Log.trace([i0 % p01.canvas.w,i0 / p01.canvas.h | 0],{ fileName : "Painter.hx", lineNumber : 123, className : "painter.Painter", methodName : "defaultPrograms"});
+			var island_tl_2;
+			var _g2 = [];
+			var _g11 = 0;
+			while(_g11 < island_tl.length) {
+				var n = island_tl[_g11];
+				++_g11;
+				if(!p01.canvas.isExterior(n % p01.canvas.w,n / p01.canvas.h | 0)) _g2.push(n);
 			}
-			var _g3 = 0;
-			while(_g3 < island_tl.length) {
-				var i01 = island_tl[_g3];
-				++_g3;
-				var ms = pass2.canvas.marchingSquares(i01 % p01.canvas.w,i01 / p01.canvas.h | 0);
+			island_tl_2 = _g2;
+			if(shape_is_exterior) island_tl_2.push(shapeidx);
+			var _g12 = 0;
+			while(_g12 < island_tl_2.length) {
+				var i0 = island_tl_2[_g12];
+				++_g12;
+				var ms = pass2.canvas.marchingSquares(i0 % p01.canvas.w,i0 / p01.canvas.h | 0);
 				var msf;
-				var _g11 = [];
-				var _g21 = 0;
-				while(_g21 < ms.length) {
-					var n = ms[_g21];
-					++_g21;
-					_g11.push([n[0] + 0.,n[1] + 0.]);
+				var _g21 = [];
+				var _g3 = 0;
+				while(_g3 < ms.length) {
+					var n1 = ms[_g3];
+					++_g3;
+					_g21.push([n1[0] + 0.,n1[1] + 0.]);
 				}
-				msf = _g11;
+				msf = _g21;
 				msf = painter_Painter.ramerDouglasPecker(msf,0.5);
-				var _g22 = [];
-				var _g31 = 0;
-				while(_g31 < msf.length) {
-					var n1 = msf[_g31];
-					++_g31;
-					_g22.push([n1[0] | 0,n1[1] | 0]);
+				var _g31 = [];
+				var _g4 = 0;
+				while(_g4 < msf.length) {
+					var n2 = msf[_g4];
+					++_g4;
+					_g31.push([n2[0] | 0,n2[1] | 0]);
 				}
-				ms = _g22;
-				var _g32 = 0;
-				var _g4 = painter_Painter.pointsToSegmentsUnlooped(ms);
-				while(_g32 < _g4.length) {
-					var c0 = _g4[_g32];
-					++_g32;
+				ms = _g31;
+				var _g41 = 0;
+				var _g5 = painter_Painter.pointsToSegmentsUnlooped(ms);
+				while(_g41 < _g5.length) {
+					var c0 = _g5[_g41];
+					++_g41;
 					p01.drawLine(p01.result,c0[0],c0[1],c0[2],c0[3],p01.paint.color);
 				}
 			}
@@ -23711,11 +23711,11 @@ painter_Painter.defaultPrograms = function() {
 		var y0 = p04.paint.y | 0;
 		var y1 = s04.y | 0;
 		p04.preview.clear();
-		var _g5 = 0;
-		var _g12 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
-		while(_g5 < _g12.length) {
-			var c01 = _g12[_g5];
-			++_g5;
+		var _g6 = 0;
+		var _g13 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
+		while(_g6 < _g13.length) {
+			var c01 = _g13[_g6];
+			++_g6;
 			p04.drawLine(target2,c01[0],c01[1],c01[2],c01[3],p04.paint.color);
 		}
 		return !s04.button[0];
@@ -23724,11 +23724,11 @@ painter_Painter.defaultPrograms = function() {
 		if(s05.button[0]) target3 = p05.preview; else target3 = p05.result;
 		p05.preview.clear();
 		var r = painter_Painter.distance(s05.x - p05.paint.x,s05.y - p05.paint.y);
-		var _g6 = 0;
-		var _g13 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p05.paint.x,p05.paint.x + r,p05.paint.y,p05.paint.y + r));
-		while(_g6 < _g13.length) {
-			var c02 = _g13[_g6];
-			++_g6;
+		var _g7 = 0;
+		var _g14 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p05.paint.x,p05.paint.x + r,p05.paint.y,p05.paint.y + r));
+		while(_g7 < _g14.length) {
+			var c02 = _g14[_g7];
+			++_g7;
 			p05.drawLine(target3,c02[0],c02[1],c02[2],c02[3],p05.paint.color);
 		}
 		return !s05.button[0];
@@ -23736,11 +23736,11 @@ painter_Painter.defaultPrograms = function() {
 		var target4;
 		if(s06.button[0]) target4 = p06.preview; else target4 = p06.result;
 		p06.preview.clear();
-		var _g7 = 0;
-		var _g14 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p06.paint.x,s06.x,p06.paint.y,s06.y));
-		while(_g7 < _g14.length) {
-			var c03 = _g14[_g7];
-			++_g7;
+		var _g8 = 0;
+		var _g15 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p06.paint.x,s06.x,p06.paint.y,s06.y));
+		while(_g8 < _g15.length) {
+			var c03 = _g15[_g8];
+			++_g8;
 			p06.drawLine(target4,c03[0],c03[1],c03[2],c03[3],p06.paint.color);
 		}
 		return !s06.button[0];
@@ -23779,28 +23779,28 @@ painter_Painter.defaultPrograms = function() {
 		if(!s011.button[0]) {
 			var ms1 = p011.canvas.marchingSquares(s011.x | 0,s011.y | 0);
 			var msf1;
-			var _g8 = [];
-			var _g15 = 0;
-			while(_g15 < ms1.length) {
-				var n2 = ms1[_g15];
-				++_g15;
-				_g8.push([n2[0] + 0.,n2[1] + 0.]);
+			var _g9 = [];
+			var _g16 = 0;
+			while(_g16 < ms1.length) {
+				var n3 = ms1[_g16];
+				++_g16;
+				_g9.push([n3[0] + 0.,n3[1] + 0.]);
 			}
-			msf1 = _g8;
+			msf1 = _g9;
 			msf1 = painter_Painter.ramerDouglasPecker(msf1,0.5);
-			var _g16 = [];
-			var _g23 = 0;
-			while(_g23 < msf1.length) {
-				var n3 = msf1[_g23];
-				++_g23;
-				_g16.push([n3[0] | 0,n3[1] | 0]);
+			var _g17 = [];
+			var _g22 = 0;
+			while(_g22 < msf1.length) {
+				var n4 = msf1[_g22];
+				++_g22;
+				_g17.push([n4[0] | 0,n4[1] | 0]);
 			}
-			ms1 = _g16;
-			var _g24 = 0;
-			var _g33 = painter_Painter.pointsToSegmentsUnlooped(ms1);
-			while(_g24 < _g33.length) {
-				var c04 = _g33[_g24];
-				++_g24;
+			ms1 = _g17;
+			var _g23 = 0;
+			var _g32 = painter_Painter.pointsToSegmentsUnlooped(ms1);
+			while(_g23 < _g32.length) {
+				var c04 = _g32[_g23];
+				++_g23;
 				p011.drawLine(p011.result,c04[0],c04[1],c04[2],c04[3],p011.paint.color);
 			}
 		}
@@ -24330,6 +24330,18 @@ painter_VectorCanvas.prototype = {
 			}
 		}
 		return { canvas : result, paints : paints};
+	}
+	,isExterior: function(x0,y0) {
+		var mark = this.floodMark(x0,y0);
+		var _g1 = 0;
+		var _g = mark.paint.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			var x = mark.paint.getX(i0);
+			var y = mark.paint.getY(i0);
+			if(x == 0 || x == this.w - 1 || y == 0 || y == this.h - 1) return true;
+		}
+		return false;
 	}
 	,remapMonochrome: function(mult) {
 		var _g1 = 0;

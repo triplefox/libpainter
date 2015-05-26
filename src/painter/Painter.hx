@@ -103,25 +103,26 @@ class Painter {
 					var sx = Std.int(s0.x); var sy = Std.int(s0.y);
 					// flood original
 					var pass1 = p0.canvas.floodMark(sx, sy);
-					var exterioridx = pass1.canvas.getFirstSeed(0);
-					var interioridx = pass1.canvas.getFirstSeed(1);
+					var shape_is_exterior = p0.canvas.isExterior(sx, sy);
+					var shapeidx = pass1.canvas.getFirstSeed(1);
 					// get islands
 					var pass2 = pass1.canvas.getIslands();
 					// detect the top-left of each island, ignoring the exterior
 					var island_tl = new Array<Int>();
-					var exteriorseed = pass2.canvas.d[exterioridx];
 					for (island in pass2.paints) {
 						var seed = island.getColor(0);
-						if (seed != exteriorseed) {
-							island_tl.push(pass2.canvas.getFirstSeed(seed));
-						}
+						island_tl.push(pass2.canvas.getFirstSeed(seed));
 					}
-					// this has an issue in that we assume an "exterior", but if the thing we're targeting is the
-					// "exterior" shape...
-					// i.e. we need a different way of detecting containment.
+					
+					var island_tl_2 : Array<Int> = // remove the exterior shape(s)
+						[for (n in island_tl) if (!p0.canvas.isExterior(p0.canvas.xIdx(n),p0.canvas.yIdx(n))) n];
+					if (shape_is_exterior) // oops, add the shape again
+					{
+						island_tl_2.push(shapeidx);
+					}
 					
 					// marching squares per island
-					for (i0 in island_tl) {
+					for (i0 in island_tl_2) {
 						var ms = pass2.canvas.marchingSquares(p0.canvas.xIdx(i0), p0.canvas.yIdx(i0));
 						var msf = [for (n in ms) [n[0] + 0., n[1] + 0.]]; /* int->float */
 						msf = ramerDouglasPecker(msf, 0.5); /* simplify vector */
