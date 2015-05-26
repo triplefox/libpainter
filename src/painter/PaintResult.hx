@@ -49,5 +49,25 @@ class PaintResult {
 				dest.push(xr + brush.data[v0*3], yr + brush.data[v0*3 + 1], color);
 		}		
 	}
-	
+	public function fillColor(color : Int) {
+		for (c0 in 0...length) {
+			data[c0 * 3 + 2] = color;
+		}
+	}
+	public function translate(x : Int, y : Int, c : Int) {
+		for (c0 in 0...length) {
+			data[c0 * 3] += x;
+			data[c0 * 3 + 1] += y;
+			data[c0 * 3 + 2] += c;
+		}
+	}	
+	public function getX(idx : Int) {
+		return data[idx * 3];
+	}	
+	public function getY(idx : Int) {
+		return data[idx * 3 + 1];
+	}	
+	public function getColor(idx : Int) {
+		return data[idx * 3 + 2];
+	}
 }

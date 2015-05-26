@@ -955,8 +955,7 @@ var Main = function() {
 	this.previewscreen = new openfl_display_Bitmap(new openfl_display_BitmapData(256,256,true,0));
 	this.edittarget = new openfl_display_Sprite();
 	var canvas = new painter_VectorCanvas();
-	canvas.init(this.editscreen.bitmapData.width,this.editscreen.bitmapData.height);
-	canvas.clear(-7829368);
+	canvas.init(this.editscreen.bitmapData.width,this.editscreen.bitmapData.height,-7829368);
 	this.painter = new painter_Painter();
 	this.painter.canvas = canvas;
 	this.state = new painter_PaintState();
@@ -23454,6 +23453,36 @@ painter_PaintResult.prototype = {
 			}
 		}
 	}
+	,fillColor: function(color) {
+		var _g1 = 0;
+		var _g = this.length;
+		while(_g1 < _g) {
+			var c0 = _g1++;
+			this.data[c0 * 3 + 2] = color;
+		}
+	}
+	,translate: function(x,y,c) {
+		var _g1 = 0;
+		var _g = this.length;
+		while(_g1 < _g) {
+			var c0 = _g1++;
+			var _g2 = c0 * 3;
+			this.data[_g2] = this.data[_g2] + x;
+			var _g21 = c0 * 3 + 1;
+			this.data[_g21] = this.data[_g21] + y;
+			var _g22 = c0 * 3 + 2;
+			this.data[_g22] = this.data[_g22] + c;
+		}
+	}
+	,getX: function(idx) {
+		return this.data[idx * 3];
+	}
+	,getY: function(idx) {
+		return this.data[idx * 3 + 1];
+	}
+	,getColor: function(idx) {
+		return this.data[idx * 3 + 2];
+	}
 	,__class__: painter_PaintResult
 };
 var painter_PaintState = function() {
@@ -23599,116 +23628,183 @@ painter_Painter.defaultPrograms = function() {
 		}
 		return !s0.button[0];
 	},function(p01,s01) {
-		var target;
 		if(!s01.button[0]) {
-			var islands = p01.canvas.getIslands();
-			p01.canvas.blit(islands.canvas,0,0,null,null);
-			p01.canvas.remapMonochrome(15);
-			p01.sync_canvas = true;
+			var sx = s01.x | 0;
+			var sy = s01.y | 0;
+			var pass1 = p01.canvas.floodMark(sx,sy);
+			var exterioridx = pass1.canvas.getFirstSeed(0);
+			var interioridx = pass1.canvas.getFirstSeed(1);
+			var pass2 = pass1.canvas.getIslands();
+			var island_tl = [];
+			var exteriorseed = pass2.canvas.d[exterioridx];
+			var _g = 0;
+			var _g1 = pass2.paints;
+			while(_g < _g1.length) {
+				var island = _g1[_g];
+				++_g;
+				var seed = island.getColor(0);
+				haxe_Log.trace(seed,{ fileName : "Painter.hx", lineNumber : 115, className : "painter.Painter", methodName : "defaultPrograms"});
+				if(seed != exteriorseed) island_tl.push(pass2.canvas.getFirstSeed(seed));
+			}
+			haxe_Log.trace("hoi",{ fileName : "Painter.hx", lineNumber : 120, className : "painter.Painter", methodName : "defaultPrograms"});
+			haxe_Log.trace(exteriorseed,{ fileName : "Painter.hx", lineNumber : 121, className : "painter.Painter", methodName : "defaultPrograms"});
+			var _g2 = 0;
+			while(_g2 < island_tl.length) {
+				var i0 = island_tl[_g2];
+				++_g2;
+				haxe_Log.trace([i0 % p01.canvas.w,i0 / p01.canvas.h | 0],{ fileName : "Painter.hx", lineNumber : 123, className : "painter.Painter", methodName : "defaultPrograms"});
+			}
+			var _g3 = 0;
+			while(_g3 < island_tl.length) {
+				var i01 = island_tl[_g3];
+				++_g3;
+				var ms = pass2.canvas.marchingSquares(i01 % p01.canvas.w,i01 / p01.canvas.h | 0);
+				var msf;
+				var _g11 = [];
+				var _g21 = 0;
+				while(_g21 < ms.length) {
+					var n = ms[_g21];
+					++_g21;
+					_g11.push([n[0] + 0.,n[1] + 0.]);
+				}
+				msf = _g11;
+				msf = painter_Painter.ramerDouglasPecker(msf,0.5);
+				var _g22 = [];
+				var _g31 = 0;
+				while(_g31 < msf.length) {
+					var n1 = msf[_g31];
+					++_g31;
+					_g22.push([n1[0] | 0,n1[1] | 0]);
+				}
+				ms = _g22;
+				var _g32 = 0;
+				var _g4 = painter_Painter.pointsToSegmentsUnlooped(ms);
+				while(_g32 < _g4.length) {
+					var c0 = _g4[_g32];
+					++_g32;
+					p01.drawLine(p01.result,c0[0],c0[1],c0[2],c0[3],p01.paint.color);
+				}
+			}
 		}
 		return !s01.button[0];
 	},function(p02,s02) {
-		var target1;
-		if(s02.button[0]) target1 = p02.preview; else target1 = p02.result;
-		p02.preview.clear();
-		p02.drawLine(target1,p02.paint.x | 0,p02.paint.y | 0,s02.x | 0,s02.y | 0,p02.paint.color);
+		var target;
+		if(!s02.button[0]) {
+			var islands = p02.canvas.getIslands();
+			haxe_Log.trace(islands.paints.length,{ fileName : "Painter.hx", lineNumber : 141, className : "painter.Painter", methodName : "defaultPrograms"});
+			p02.canvas.blit(islands.canvas,0,0,null,null);
+			p02.canvas.remapMonochrome(15);
+			p02.sync_canvas = true;
+		}
 		return !s02.button[0];
 	},function(p03,s03) {
-		var target2;
-		if(s03.button[0]) target2 = p03.preview; else target2 = p03.result;
-		var x0 = p03.paint.x | 0;
-		var x1 = s03.x | 0;
-		var y0 = p03.paint.y | 0;
-		var y1 = s03.y | 0;
+		var target1;
+		if(s03.button[0]) target1 = p03.preview; else target1 = p03.result;
 		p03.preview.clear();
-		var _g = 0;
-		var _g1 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
-		while(_g < _g1.length) {
-			var c0 = _g1[_g];
-			++_g;
-			p03.drawLine(target2,c0[0],c0[1],c0[2],c0[3],p03.paint.color);
-		}
+		p03.drawLine(target1,p03.paint.x | 0,p03.paint.y | 0,s03.x | 0,s03.y | 0,p03.paint.color);
 		return !s03.button[0];
 	},function(p04,s04) {
-		var target3;
-		if(s04.button[0]) target3 = p04.preview; else target3 = p04.result;
+		var target2;
+		if(s04.button[0]) target2 = p04.preview; else target2 = p04.result;
+		var x0 = p04.paint.x | 0;
+		var x1 = s04.x | 0;
+		var y0 = p04.paint.y | 0;
+		var y1 = s04.y | 0;
 		p04.preview.clear();
-		var r = painter_Painter.distance(s04.x - p04.paint.x,s04.y - p04.paint.y);
-		var _g2 = 0;
-		var _g11 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p04.paint.x,p04.paint.x + r,p04.paint.y,p04.paint.y + r));
-		while(_g2 < _g11.length) {
-			var c01 = _g11[_g2];
-			++_g2;
-			p04.drawLine(target3,c01[0],c01[1],c01[2],c01[3],p04.paint.color);
+		var _g5 = 0;
+		var _g12 = painter_Painter.pointsToSegments([[x0,y0],[x0,y1],[x1,y1],[x1,y0]]);
+		while(_g5 < _g12.length) {
+			var c01 = _g12[_g5];
+			++_g5;
+			p04.drawLine(target2,c01[0],c01[1],c01[2],c01[3],p04.paint.color);
 		}
 		return !s04.button[0];
 	},function(p05,s05) {
-		var target4;
-		if(s05.button[0]) target4 = p05.preview; else target4 = p05.result;
+		var target3;
+		if(s05.button[0]) target3 = p05.preview; else target3 = p05.result;
 		p05.preview.clear();
-		var _g3 = 0;
-		var _g12 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p05.paint.x,s05.x,p05.paint.y,s05.y));
-		while(_g3 < _g12.length) {
-			var c02 = _g12[_g3];
-			++_g3;
-			p05.drawLine(target4,c02[0],c02[1],c02[2],c02[3],p05.paint.color);
+		var r = painter_Painter.distance(s05.x - p05.paint.x,s05.y - p05.paint.y);
+		var _g6 = 0;
+		var _g13 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p05.paint.x,p05.paint.x + r,p05.paint.y,p05.paint.y + r));
+		while(_g6 < _g13.length) {
+			var c02 = _g13[_g6];
+			++_g6;
+			p05.drawLine(target3,c02[0],c02[1],c02[2],c02[3],p05.paint.color);
 		}
 		return !s05.button[0];
 	},function(p06,s06) {
-		if(!s06.button[0]) {
-			p06.canvas.floodFill(s06.x | 0,s06.y | 0,p06.paint.color);
-			p06.sync_canvas = true;
+		var target4;
+		if(s06.button[0]) target4 = p06.preview; else target4 = p06.result;
+		p06.preview.clear();
+		var _g7 = 0;
+		var _g14 = painter_Painter.pointsToSegments(painter_Painter.ellipse(p06.paint.x,s06.x,p06.paint.y,s06.y));
+		while(_g7 < _g14.length) {
+			var c03 = _g14[_g7];
+			++_g7;
+			p06.drawLine(target4,c03[0],c03[1],c03[2],c03[3],p06.paint.color);
 		}
 		return !s06.button[0];
 	},function(p07,s07) {
 		if(!s07.button[0]) {
-			var df = p07.canvas.dijkstraFlood(s07.x | 0,s07.y | 0,null);
-			df.canvas.remapMonochrome(17);
-			p07.canvas.blit(df.canvas,0,0,null,null);
+			p07.canvas.floodFill(s07.x | 0,s07.y | 0,p07.paint.color);
 			p07.sync_canvas = true;
 		}
 		return !s07.button[0];
 	},function(p08,s08) {
-		var target5;
-		p08.preview.clear();
-		if(s08.button[0]) p08.drawLine(p08.preview,p08.paint.x | 0,p08.paint.y | 0,s08.x | 0,s08.y | 0,p08.paint.color); else {
-			var df1 = p08.canvas.dijkstraFlood(s08.x | 0,s08.y | 0,null);
-			var midx = p08.paint.x + (s08.x - p08.paint.x) / 2;
-			var midy = p08.paint.y + (s08.y - p08.paint.y) / 2;
-			var dp = df1.canvas.dijkstraNaturalPath4(p08.paint.x | 0,p08.paint.y | 0,midx | 0,midy | 0);
-			dp.stroke(p08.result,p08.paint.brush,p08.paint.color);
+		if(!s08.button[0]) {
+			p08.canvas.setPaintsColor(p08.canvas.floodMark(s08.x | 0,s08.y | 0).paint,-65281);
+			p08.sync_canvas = true;
 		}
 		return !s08.button[0];
 	},function(p09,s09) {
 		if(!s09.button[0]) {
-			var ms = p09.canvas.marchingSquares(s09.x | 0,s09.y | 0);
-			var msf;
-			var _g4 = [];
-			var _g13 = 0;
-			while(_g13 < ms.length) {
-				var n = ms[_g13];
-				++_g13;
-				_g4.push([n[0] + 0.,n[1] + 0.]);
-			}
-			msf = _g4;
-			msf = painter_Painter.ramerDouglasPecker(msf,0.5);
-			var _g14 = [];
-			var _g21 = 0;
-			while(_g21 < msf.length) {
-				var n1 = msf[_g21];
-				++_g21;
-				_g14.push([n1[0] | 0,n1[1] | 0]);
-			}
-			ms = _g14;
-			var _g22 = 0;
-			var _g31 = painter_Painter.pointsToSegmentsUnlooped(ms);
-			while(_g22 < _g31.length) {
-				var c03 = _g31[_g22];
-				++_g22;
-				p09.drawLine(p09.result,c03[0],c03[1],c03[2],c03[3],p09.paint.color);
-			}
+			var df = p09.canvas.dijkstraFlood(s09.x | 0,s09.y | 0,null);
+			df.canvas.remapMonochrome(17);
+			p09.canvas.blit(df.canvas,0,0,null,null);
+			p09.sync_canvas = true;
 		}
 		return !s09.button[0];
+	},function(p010,s010) {
+		var target5;
+		p010.preview.clear();
+		if(s010.button[0]) p010.drawLine(p010.preview,p010.paint.x | 0,p010.paint.y | 0,s010.x | 0,s010.y | 0,p010.paint.color); else {
+			var df1 = p010.canvas.dijkstraFlood(s010.x | 0,s010.y | 0,null);
+			var midx = p010.paint.x + (s010.x - p010.paint.x) / 2;
+			var midy = p010.paint.y + (s010.y - p010.paint.y) / 2;
+			var dp = df1.canvas.dijkstraNaturalPath4(p010.paint.x | 0,p010.paint.y | 0,midx | 0,midy | 0);
+			dp.stroke(p010.result,p010.paint.brush,p010.paint.color);
+		}
+		return !s010.button[0];
+	},function(p011,s011) {
+		if(!s011.button[0]) {
+			var ms1 = p011.canvas.marchingSquares(s011.x | 0,s011.y | 0);
+			var msf1;
+			var _g8 = [];
+			var _g15 = 0;
+			while(_g15 < ms1.length) {
+				var n2 = ms1[_g15];
+				++_g15;
+				_g8.push([n2[0] + 0.,n2[1] + 0.]);
+			}
+			msf1 = _g8;
+			msf1 = painter_Painter.ramerDouglasPecker(msf1,0.5);
+			var _g16 = [];
+			var _g23 = 0;
+			while(_g23 < msf1.length) {
+				var n3 = msf1[_g23];
+				++_g23;
+				_g16.push([n3[0] | 0,n3[1] | 0]);
+			}
+			ms1 = _g16;
+			var _g24 = 0;
+			var _g33 = painter_Painter.pointsToSegmentsUnlooped(ms1);
+			while(_g24 < _g33.length) {
+				var c04 = _g33[_g24];
+				++_g24;
+				p011.drawLine(p011.result,c04[0],c04[1],c04[2],c04[3],p011.paint.color);
+			}
+		}
+		return !s011.button[0];
 	}];
 };
 painter_Painter.ramerDouglasPecker = function(v,epsilon) {
@@ -23804,12 +23900,13 @@ var painter_VectorCanvas = function() {
 $hxClasses["painter.VectorCanvas"] = painter_VectorCanvas;
 painter_VectorCanvas.__name__ = ["painter","VectorCanvas"];
 painter_VectorCanvas.prototype = {
-	init: function(width,height) {
+	init: function(width,height,v) {
 		this.w = width;
 		this.h = height;
 		var this1;
 		this1 = new Array(this.w * this.h);
 		this.d = this1;
+		this.clear(v);
 	}
 	,clear: function(v) {
 		var _g1 = 0;
@@ -23821,7 +23918,11 @@ painter_VectorCanvas.prototype = {
 	}
 	,copy: function() {
 		var r = new painter_VectorCanvas();
-		r.init(this.w,this.h);
+		r.w = this.w;
+		r.h = this.h;
+		var this1;
+		this1 = new Array(this.w * this.h);
+		r.d = this1;
 		haxe_ds__$Vector_Vector_$Impl_$.blit(this.d,0,r.d,0,this.d.length);
 		return r;
 	}
@@ -23855,7 +23956,11 @@ painter_VectorCanvas.prototype = {
 	,slice: function(x,y,w,h) {
 		if(w < 1 || h < 1) return null;
 		var result = new painter_VectorCanvas();
-		result.init(w,h);
+		result.w = w;
+		result.h = w;
+		var this1;
+		this1 = new Array(w * h);
+		result.d = this1;
 		var _g = 0;
 		while(_g < h) {
 			var i0 = _g++;
@@ -23911,11 +24016,38 @@ painter_VectorCanvas.prototype = {
 		}
 		return paints;
 	}
+	,floodMark: function(x,y) {
+		var queue = [];
+		var paints = new painter_PaintResult();
+		var working = new painter_VectorCanvas();
+		working.init(this.w,this.h,0);
+		var seed;
+		if(x >= 0 && x < this.w && y >= 0 && y < this.h) seed = this.d[this.w * y + x]; else seed = this.d[0];
+		queue.push(this.w * y + x);
+		while(queue.length > 0) {
+			var node = queue.shift();
+			var y1 = node / this.h | 0;
+			var yi = y1 * this.w;
+			var wx = node % this.w;
+			var ex = wx;
+			while(wx >= 0 && this.d[wx + yi] == seed && working.d[wx + yi] == 0) wx -= 1;
+			while(ex < this.w && this.d[ex + yi] == seed && working.d[ex + yi] == 0) ex += 1;
+			wx += 1;
+			var _g = wx;
+			while(_g < ex) {
+				var i0 = _g++;
+				paints.push(i0,y1,1);
+				if(i0 >= 0 && i0 < working.w && y1 >= 0 && y1 < working.h) working.d[working.w * y1 + i0] = 1;
+				if(y1 - 1 >= 0 && this.d[i0 + yi - this.w] == seed && working.d[i0 + yi - this.w] == 0) queue.push(this.w * (y1 - 1) + i0);
+				if(y1 + 1 < this.h && this.d[i0 + yi + this.w] == seed && working.d[i0 + yi + this.w] == 0) queue.push(this.w * (y1 + 1) + i0);
+			}
+		}
+		return { canvas : working, paint : paints};
+	}
 	,dijkstraFlood: function(x,y,result) {
 		if(result == null) {
 			result = new painter_VectorCanvas();
-			result.init(this.w,this.h);
-			result.clear(-2);
+			result.init(this.w,this.h,-2);
 		}
 		var queue = [];
 		var seed;
@@ -24160,8 +24292,7 @@ painter_VectorCanvas.prototype = {
 	}
 	,getInwardSpiralSeed: function(seed,not) {
 		var marking = new painter_VectorCanvas();
-		marking.init(this.w,this.h);
-		marking.clear(0);
+		marking.init(this.w,this.h,0);
 		var x = 0;
 		var y = 0;
 		var step = 0;
@@ -24182,25 +24313,18 @@ painter_VectorCanvas.prototype = {
 		return squareValue;
 	}
 	,getIslands: function() {
-		var working = this.copy();
 		var result = new painter_VectorCanvas();
-		result.init(this.w,this.h);
+		result.init(this.w,this.h,0);
 		var isle = 1;
 		var paints = [];
 		var _g1 = 0;
 		var _g = result.d.length;
 		while(_g1 < _g) {
 			var i0 = _g1++;
-			if(working.d[i0] != -1) {
-				var paint = working.floodFill(i0 % this.w,i0 / this.h | 0,-1);
-				var _g3 = 0;
-				var _g2 = paint.length;
-				while(_g3 < _g2) {
-					var i01 = _g3++;
-					var px = paint.data[i01 * 3];
-					var py = paint.data[i01 * 3 + 1];
-					result.d[result.w * py + px] = isle;
-				}
+			if(result.d[i0] == 0) {
+				var paint = this.floodMark(i0 % this.w,i0 / this.h | 0).paint;
+				paint.fillColor(isle);
+				result.setPaints(paint);
 				paints.push(paint);
 				isle += 1;
 			}
@@ -24237,6 +24361,29 @@ painter_VectorCanvas.prototype = {
 			} else result.h[c] = 1;
 		}
 		return result;
+	}
+	,setPaints: function(pr) {
+		var _g1 = 0;
+		var _g = pr.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			var i = i0 * 3;
+			var x = pr.data[i];
+			var y = pr.data[i + 1];
+			var c = pr.data[i + 2];
+			if(x >= 0 && x < this.w && y >= 0 && y < this.h) this.d[this.w * y + x] = c;
+		}
+	}
+	,setPaintsColor: function(pr,c) {
+		var _g1 = 0;
+		var _g = pr.length;
+		while(_g1 < _g) {
+			var i0 = _g1++;
+			var i = i0 * 3;
+			var x = pr.data[i];
+			var y = pr.data[i + 1];
+			if(x >= 0 && x < this.w && y >= 0 && y < this.h) this.d[this.w * y + x] = c;
+		}
 	}
 	,__class__: painter_VectorCanvas
 };

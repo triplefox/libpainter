@@ -10,16 +10,18 @@ class VectorCanvas {
 	public function new() {
 	}
 	
-	public function init(width : Int, height : Int) {
+	public function init(width : Int, height : Int, v : Int) {
 		this.w = width; this.h = height;
 		this.d = new Vector<Int>(w * h);
+		clear(v);
 	}
 	public function clear(v : Int) {
 		for ( i0 in 0...d.length) d[i0] = v;
 	}
 	public function copy() {
 		var r = new VectorCanvas(); 
-		r.init(this.w, this.h);
+		r.w = this.w; r.h = this.h;
+		r.d = new Vector<Int>(w * h);
 		Vector.blit(d, 0, r.d, 0, d.length); return r;
 	}
 	
@@ -35,7 +37,9 @@ class VectorCanvas {
 	
 	public inline function slice(x : Int, y : Int, w : Int, h : Int) : VectorCanvas {
 		if (w < 1 || h < 1) return null;
-		var result = new VectorCanvas(); result.init(w, h);
+		var result = new VectorCanvas();
+		result.w = w; result.h = w;
+		result.d = new Vector<Int>(w * h);		
 		for (i0 in 0...h) {
 			for (i1 in 0...w) {
 				result.set(i1, i0, get(i1 + x, i0 + y));
@@ -78,13 +82,38 @@ class VectorCanvas {
 		return paints;
 	}
 	
+	/* flood fill that returns a new canvas set to 0 (outside) and 1 (inside). Useful for filling same-color area. */
+	public inline function floodMark(x : Int, y : Int) : {canvas:VectorCanvas, paint:PaintResult} {
+		var queue = new Array<Int>();
+		var paints = new PaintResult();
+		var working = new VectorCanvas(); working.init(w, h, 0);
+		var seed = get(x, y);
+		queue.push(getIdx(x, y));
+		while (queue.length > 0) {
+			var node = queue.shift();
+			var y = yIdx(node); var yi = y * w;
+			var wx = xIdx(node);
+			var ex = wx;
+			while (wx >= 0 && d[wx + yi] == seed && working.d[wx + yi] == 0) wx -= 1;
+			while (ex < w && d[ex + yi] == seed && working.d[ex + yi] == 0) ex += 1;
+			wx += 1;
+			for (i0 in wx...ex) {
+				paints.push(i0, y, 1);
+				working.set(i0, y, 1);
+				if (y - 1 >= 0 && d[i0 + yi - w] == seed && working.d[i0 + yi - w] == 0) queue.push(getIdx(i0, y - 1));
+				if (y + 1 < h && d[i0 + yi + w] == seed && working.d[i0 + yi + w] == 0) queue.push(getIdx(i0, y + 1));
+			}
+		}
+		return {canvas:working, paint:paints};
+	}
+	
 	/* return a new canvas with a flood fill appropriate for Dijkstra shortest-path valuation: value 0 is the destination,
 	 * adjacent values count upwards. Walls are -1, unreachable values are -2. "result" allows a canvas to be reused. 
 	 * Also returns a paint result (e.g. if animation is desired)
 	 * Algorithm looks for "open" area (matching seed value) rather than for "obstacles".
 	 * */
 	public inline function dijkstraFlood(x : Int, y : Int, ?result : VectorCanvas) : {canvas:VectorCanvas,paint:PaintResult} {
-		if (result == null) { result = new VectorCanvas(); result.init(w, h); result.clear(-2); }
+		if (result == null) { result = new VectorCanvas(); result.init(w, h, -2); }
 		var queue = new Array<Int>();
 		var seed = get(x, y);
 		var paint = new PaintResult();
@@ -282,7 +311,7 @@ class VectorCanvas {
 		}
 	}
  
-	/* get the first matching index of this seed */
+	/* get the first matching index of this seed, running left-right, top-bottom */
 	public function getFirstSeed(seed : Int):Int {
 		for (i0 in 0...d.length) {
 			if (d[i0] == seed) { return i0; }
@@ -298,10 +327,11 @@ class VectorCanvas {
 		return -1;
 	}
 	
-	/* walk a spiral pattern until the first point (not, if not is true) matching the seed is found */
+	/* walk a spiral pattern until the first point (not, if not is true) matching the seed is found. 
+	 * Useful for getting the exterior of an object. */
 	public function getInwardSpiralSeed(seed : Int, not : Bool) {
 		/* this is a very simple implementation that just uses a second canvas. */
-		var marking = new VectorCanvas(); marking.init(w, h); marking.clear(0);
+		var marking = new VectorCanvas(); marking.init(w, h, 0);
 		var x = 0;
 		var y = 0;
 		var step = 0;
@@ -354,18 +384,14 @@ class VectorCanvas {
 	/* given a canvas of positively indexed colors, output a new canvas where each island of connected color is marked,
 	 * starting from 1 at top left and counting upwards(2, 3...). */
 	public function getIslands() {
-		var working = this.copy();
-		var result = new VectorCanvas(); result.init(w, h);
+		var result = new VectorCanvas(); result.init(w, h, 0);
 		var isle = 1;
 		var paints = new Array<PaintResult>();
 		for (i0 in 0...result.d.length) {
-			if (working.d[i0] != -1) {
-				var paint = working.floodFill(xIdx(i0), yIdx(i0), -1);
-				for (i0 in 0...paint.length) {
-					var px = paint.data[i0 * 3];
-					var py = paint.data[i0 * 3 + 1];
-					result.rawset(px, py, isle);
-				}
+			if (result.d[i0] == 0) {
+				var paint = floodMark(xIdx(i0), yIdx(i0)).paint;
+				paint.fillColor(isle);
+				result.setPaints(paint);
 				paints.push(paint);
 				isle += 1;
 			}
@@ -398,6 +424,26 @@ class VectorCanvas {
 			else result.set(c, 1);
 		}
 		return result;
+	}
+	
+	/* set the data from a PaintResult */
+	public function setPaints(pr : PaintResult) {
+		for (i0 in 0...pr.length) {
+			var i = i0 * 3;
+			var x = pr.data[i];
+			var y = pr.data[i + 1];
+			var c = pr.data[i + 2];
+			set(x, y, c);
+		}
+	}
+	
+	public function setPaintsColor(pr : PaintResult, c : Int) {
+		for (i0 in 0...pr.length) {
+			var i = i0 * 3;
+			var x = pr.data[i];
+			var y = pr.data[i + 1];
+			set(x, y, c);
+		}
 	}
 	
 }

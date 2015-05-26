@@ -98,10 +98,46 @@ class Painter {
 				}
 				return !s0.button[0];
 			},
+			function(p0 : Painter, s0 : PaintState) : Bool { /* marching squares with hole detect */
+				if (!s0.button[0]) {
+					var sx = Std.int(s0.x); var sy = Std.int(s0.y);
+					// flood original
+					var pass1 = p0.canvas.floodMark(sx, sy);
+					var exterioridx = pass1.canvas.getFirstSeed(0);
+					var interioridx = pass1.canvas.getFirstSeed(1);
+					// get islands
+					var pass2 = pass1.canvas.getIslands();
+					// detect the top-left of each island, ignoring the exterior
+					var island_tl = new Array<Int>();
+					var exteriorseed = pass2.canvas.d[exterioridx];
+					for (island in pass2.paints) {
+						var seed = island.getColor(0);
+						if (seed != exteriorseed) {
+							island_tl.push(pass2.canvas.getFirstSeed(seed));
+						}
+					}
+					// this has an issue in that we assume an "exterior", but if the thing we're targeting is the
+					// "exterior" shape...
+					// i.e. we need a different way of detecting containment.
+					
+					// marching squares per island
+					for (i0 in island_tl) {
+						var ms = pass2.canvas.marchingSquares(p0.canvas.xIdx(i0), p0.canvas.yIdx(i0));
+						var msf = [for (n in ms) [n[0] + 0., n[1] + 0.]]; /* int->float */
+						msf = ramerDouglasPecker(msf, 0.5); /* simplify vector */
+						ms = [for (n in msf) [Std.int(n[0]), Std.int(n[1])]]; /* float->int */
+						for (c0 in pointsToSegmentsUnlooped(ms)) {
+							p0.drawLine(p0.result, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
+						}
+					}
+				}
+				return !s0.button[0];
+			},
 			function(p0 : Painter, s0 : PaintState) { /* islands test */
 				var target : PaintResult;
 				if (!s0.button[0]) {
 					var islands = p0.canvas.getIslands();
+					trace(islands.paints.length);
 					p0.canvas.blit(islands.canvas, 0, 0);
 					p0.canvas.remapMonochrome(0xF);
 					p0.sync_canvas = true;
@@ -151,6 +187,13 @@ class Painter {
 			function(p0 : Painter, s0 : PaintState) : Bool { /* flood fill */
 				if (!s0.button[0]) {
 					p0.canvas.floodFill(Std.int(s0.x), Std.int(s0.y), p0.paint.color);
+					p0.sync_canvas = true;
+				}
+				return !s0.button[0];
+			},
+			function(p0 : Painter, s0 : PaintState) : Bool { /* flood mark */
+				if (!s0.button[0]) {
+					p0.canvas.setPaintsColor(p0.canvas.floodMark(Std.int(s0.x), Std.int(s0.y)).paint, 0xFFFF00FF);
 					p0.sync_canvas = true;
 				}
 				return !s0.button[0];
