@@ -125,7 +125,7 @@ class Painter {
 					for (i0 in island_tl_2) {
 						var ms = pass2.canvas.marchingSquares(p0.canvas.xIdx(i0), p0.canvas.yIdx(i0));
 						var msf = [for (n in ms) [n[0] + 0., n[1] + 0.]]; /* int->float */
-						msf = ramerDouglasPecker(msf, 0.5); /* simplify vector */
+						msf = ramerDouglasPeucker(msf, 0.5); /* simplify vector */
 						ms = [for (n in msf) [Std.int(n[0]), Std.int(n[1])]]; /* float->int */
 						for (c0 in pointsToSegmentsUnlooped(ms)) {
 							p0.drawLine(p0.result, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
@@ -227,7 +227,7 @@ class Painter {
 				if (!s0.button[0]) {
 					var ms = p0.canvas.marchingSquares(Std.int(s0.x), Std.int(s0.y));
 					var msf = [for (n in ms) [n[0] + 0., n[1] + 0.]]; /* int->float */
-					msf = ramerDouglasPecker(msf, 0.5); /* simplify vector */
+					msf = ramerDouglasPeucker(msf, 0.5); /* simplify vector */
 					ms = [for (n in msf) [Std.int(n[0]), Std.int(n[1])]]; /* float->int */
 					for (c0 in pointsToSegmentsUnlooped(ms)) {
 						p0.drawLine(p0.result, c0[0], c0[1], c0[2], c0[3], p0.paint.color);
@@ -239,7 +239,7 @@ class Painter {
 	}
 	
 	/* RDP vector outline simplification */
-	public static function ramerDouglasPecker(v:Array<Array<Float>>,epsilon:Float):Array<Array<Float>> {
+	public static function ramerDouglasPeucker(v:Array<Array<Float>>,epsilon:Float):Array<Array<Float>> {
 		var firstPoint=v[0];
 		var lastPoint=v[v.length-1];
 		if (v.length<3) {
@@ -257,8 +257,8 @@ class Painter {
 		if (dist>epsilon) {
 			var l1 = v.slice(0,index+1);
 			var l2 = v.slice(index);
-			var r1 = ramerDouglasPecker(l1,epsilon);
-			var r2 = ramerDouglasPecker(l2,epsilon);
+			var r1 = ramerDouglasPeucker(l1,epsilon);
+			var r2 = ramerDouglasPeucker(l2,epsilon);
 			var rs = r1.slice(0,r1.length-1).concat(r2);
 			return rs;
 		}
