@@ -26,7 +26,7 @@ class VectorCanvas {
 	}
 	
 	public inline function xIdx(idx : Int) { return idx % w; }
-	public inline function yIdx(idx : Int) { return Std.int(idx / h); }
+	public inline function yIdx(idx : Int) { return Std.int(idx / w); }
 	public inline function getIdx(x : Int, y : Int) { return w*y + x; }
 	public inline function rawget(x : Int, y : Int) { return d[w*y + x]; }
 	public inline function get(x : Int, y : Int) { if (x >= 0 && x < w && y >= 0 && y < h) return d[w * y + x]; else return d[0]; }
