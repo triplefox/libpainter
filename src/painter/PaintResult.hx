@@ -39,8 +39,8 @@ class PaintResult {
 		r.length = length; 
 		return r;
 	}
-	public function toString() {
-		return [for (i0 in 0...length) data[i0]];
+	public function toString() : String {
+		return Std.string([for (i0 in 0...length) data[i0]]);
 	}
 	public function stroke(dest : PaintResult, brush : PaintResult, color : Int) {
 		for (c0 in 0...length) {
