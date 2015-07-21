@@ -348,6 +348,29 @@ class VectorCanvas {
 		return -1;
 	}
 	
+	/* find the rectangle inside the defined area that is not like the seed point */
+	public function getInnerRectBounds(rX:Int, rY:Int, rW:Int, rH:Int, seed:Int) {
+		var lX = rX+rW; var lY = rY+rH;
+		var hX = rX; var hY = rY;
+		var bound = false;
+		for (y0 in 0...rH) {
+			for (x0 in 0...rW) {
+				var x1 = x0 + rX;
+				var y1 = y0 + rY;
+				if (get(x1, y1) != seed) {
+					lX = lX < x1 ? lX : x1;
+					hX = hX > x1 ? hX : x1;
+					lY = lY < y1 ? lY : y1;
+					hY = hY > y1 ? hY : y1;
+					bound = true;
+				}
+			}
+		}
+		if (bound)
+			return [lX, lY, hX - lX, hY - lY];
+		else
+			return [rX, rY, rW, rH];
+	}
 
 	public function getSquareValue(pX:Int,pY:Int,seed:Int):Int {
 		/*
