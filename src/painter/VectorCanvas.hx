@@ -107,6 +107,45 @@ class VectorCanvas {
 		return {canvas:working, paint:paints};
 	}
 	
+	/* version of floodMark that crosses diagonals */
+	public inline function floodMark2(x : Int, y : Int) : {canvas:VectorCanvas, paint:PaintResult} {
+		var queue = new Array<Int>();
+		var paints = new PaintResult();
+		var working = new VectorCanvas(); working.init(w, h, 0);
+		var seed = get(x, y);
+		queue.push(getIdx(x, y));
+		while (queue.length > 0) {
+			var node = queue.shift();
+			var y = yIdx(node); var yi = y * w;
+			var wx = xIdx(node);
+			var ex = wx;
+			while (wx >= 0 && d[wx + yi] == seed && working.d[wx + yi] == 0) wx -= 1;
+			while (ex < w && d[ex + yi] == seed && working.d[ex + yi] == 0) ex += 1;
+			wx += 1;
+			for (i0 in wx...ex) {
+				paints.push(i0, y, 1);
+				working.set(i0, y, 1);
+				var xl = i0 - 1;
+				var xr = i0 + 1;
+				var tl = xl + yi - w;
+				var tr = xr + yi - w;
+				var bl = xl + yi + w;
+				var br = xr + yi + w;
+				if (y - 1 >= 0 && d[i0 + yi - w] == seed && working.d[i0 + yi - w] == 0) queue.push(getIdx(i0, y - 1));
+				else {
+					if (y - 1 >= 0 && d[tl] == seed && working.d[tl] == 0) queue.push(getIdx(xl, y - 1));
+					if (y - 1 >= 0 && d[tr] == seed && working.d[tr] == 0) queue.push(getIdx(xr, y - 1));
+				}
+				if (y + 1 < h && d[i0 + yi + w] == seed && working.d[i0 + yi + w] == 0) queue.push(getIdx(i0, y + 1));
+				else {
+					if (y + 1 < h && d[bl] == seed && working.d[bl] == 0) queue.push(getIdx(xl, y + 1));
+					if (y + 1 < h && d[br] == seed && working.d[br] == 0) queue.push(getIdx(xr, y + 1));
+				}
+			}
+		}
+		return {canvas:working, paint:paints};
+	}
+	
 	/* return a new canvas with a flood fill appropriate for Dijkstra shortest-path valuation: value 0 is the destination,
 	 * adjacent values count upwards. Walls are -1, unreachable values are -2. "result" allows a canvas to be reused. 
 	 * Also returns a paint result (e.g. if animation is desired)
@@ -413,6 +452,23 @@ class VectorCanvas {
 		for (i0 in 0...result.d.length) {
 			if (result.d[i0] == 0) {
 				var paint = floodMark(xIdx(i0), yIdx(i0)).paint;
+				paint.fillColor(isle);
+				result.setPaints(paint);
+				paints.push(paint);
+				isle += 1;
+			}
+		}
+		return {canvas:result,paints:paints};
+	}
+	
+	/* getIslands using diagonal floodMark */
+	public function getIslands2() {
+		var result = new VectorCanvas(); result.init(w, h, 0);
+		var isle = 1;
+		var paints = new Array<PaintResult>();
+		for (i0 in 0...result.d.length) {
+			if (result.d[i0] == 0) {
+				var paint = floodMark2(xIdx(i0), yIdx(i0)).paint;
 				paint.fillColor(isle);
 				result.setPaints(paint);
 				paints.push(paint);
